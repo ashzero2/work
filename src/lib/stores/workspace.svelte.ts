@@ -1,4 +1,5 @@
 import * as api from '$lib/api';
+import { toast } from '$lib/stores/toast.svelte';
 import type { Column, Task, ViewMode } from '$lib/types';
 
 function errorMessage(error: unknown): string {
@@ -12,17 +13,25 @@ class WorkspaceStore {
   tasks = $state<Task[]>([]);
   viewMode = $state<ViewMode>('board');
   targetColumnId = $state<number | null>(null);
-  toast = $state<string | null>(null);
+  loading = $state(true);
 
   async load(): Promise<void> {
-    await this.refresh();
+    try {
+      await this.refresh();
+    } finally {
+      this.loading = false;
+    }
   }
 
   async refresh(): Promise<void> {
-    const [columns, tasks] = await Promise.all([api.listColumns(), api.listTasks()]);
-    this.columns = columns;
-    this.tasks = tasks;
-    this.repairTargetColumn();
+    try {
+      const [columns, tasks] = await Promise.all([api.listColumns(), api.listTasks()]);
+      this.columns = columns;
+      this.tasks = tasks;
+      this.repairTargetColumn();
+    } catch (error) {
+      toast.show(errorMessage(error));
+    }
   }
 
   get targetColumnName(): string | null {
@@ -88,7 +97,7 @@ class WorkspaceStore {
       await api.deleteTask(id);
     } catch (error) {
       this.tasks = previous;
-      this.showToast(errorMessage(error));
+      toast.show(errorMessage(error));
     }
     await this.refresh();
   }
@@ -127,23 +136,16 @@ class WorkspaceStore {
     try {
       await api.deleteColumn(id);
     } catch (error) {
-      this.showToast(errorMessage(error));
+      toast.show(errorMessage(error));
     }
     await this.refresh();
-  }
-
-  showToast(message: string): void {
-    this.toast = message;
-    window.setTimeout(() => {
-      if (this.toast === message) this.toast = null;
-    }, 3500);
   }
 
   private async persist(action: () => Promise<unknown>): Promise<void> {
     try {
       await action();
     } catch (error) {
-      this.showToast(errorMessage(error));
+      toast.show(errorMessage(error));
     }
     await this.refresh();
   }

@@ -4,6 +4,7 @@
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Task } from '$lib/types';
   import EmptyState from './EmptyState.svelte';
+  import LoadingState from './LoadingState.svelte';
   import TaskMeta from './TaskMeta.svelte';
 
   const byPosition = (a: Task, b: Task): number => a.position - b.position;
@@ -79,7 +80,9 @@
     </section>
   {/if}
 
-  {#if !hasOpen && completed.length === 0}
+  {#if workspace.loading}
+    <LoadingState label="Loading tasks…" />
+  {:else if !hasOpen && completed.length === 0}
     <div class="center">
       <EmptyState
         variant="list"

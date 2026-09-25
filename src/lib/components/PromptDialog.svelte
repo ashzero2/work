@@ -40,7 +40,12 @@
 <div class="backdrop">
   <div class="dialog" bind:this={dialog} role="dialog" aria-modal="true" aria-label={title}>
     <h2>{title}</h2>
-    <input bind:this={input} bind:value={value} {placeholder} />
+    <input
+      bind:this={input}
+      bind:value={value}
+      {placeholder}
+      aria-label={placeholder || title}
+    />
     <div class="actions">
       <button class="btn" onclick={oncancel}>Cancel</button>
       <button class="btn btn-primary" onclick={submit} disabled={!value.trim()}>{confirmLabel}</button>
@@ -90,7 +95,6 @@
 
   input:focus {
     border-color: var(--accent);
-    outline: none;
   }
 
   .actions {

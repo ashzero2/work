@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { List, SquareKanban } from '@lucide/svelte';
+  import { List, SquareKanban, StickyNote } from '@lucide/svelte';
   import type { Snippet } from 'svelte';
 
   interface Props {
-    variant: 'board' | 'list';
+    variant: 'board' | 'list' | 'notes';
     title: string;
     description: string;
     action?: Snippet;
@@ -13,11 +13,13 @@
 </script>
 
 <div class="empty">
-  <div class="badge">
+  <div class="glyph">
     {#if variant === 'board'}
-      <SquareKanban size={22} />
+      <SquareKanban size={20} />
+    {:else if variant === 'notes'}
+      <StickyNote size={20} />
     {:else}
-      <List size={22} />
+      <List size={20} />
     {/if}
   </div>
   <div class="title">{title}</div>
@@ -32,21 +34,18 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    max-width: 320px;
+    gap: 6px;
+    max-width: 340px;
     text-align: center;
   }
 
-  .badge {
+  .glyph {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    margin-bottom: 4px;
-    border-radius: var(--radius);
-    background: var(--lane);
+    margin-bottom: 2px;
     color: var(--muted-fg);
+    opacity: 0.85;
   }
 
   .title {
@@ -62,6 +61,6 @@
   }
 
   .action {
-    margin-top: 8px;
+    margin-top: 10px;
   }
 </style>

@@ -5,6 +5,7 @@
   import type { Column as ColumnModel, Task } from '$lib/types';
   import Column from './Column.svelte';
   import EmptyState from './EmptyState.svelte';
+  import LoadingState from './LoadingState.svelte';
 
   interface Props {
     onrename: (column: ColumnModel) => void;
@@ -25,7 +26,9 @@
   });
 </script>
 
-{#if workspace.columns.length === 0}
+{#if workspace.loading}
+  <LoadingState label="Loading tasks…" />
+{:else if workspace.columns.length === 0}
   <div class="center">
     <EmptyState
       variant="board"

@@ -25,7 +25,14 @@
 </script>
 
 <div class="toolbar">
-  <input class="add-input" bind:value={title} onkeydown={onKeydown} placeholder="Add a task…" />
+  <label class="sr-only" for="new-task-title">New task title</label>
+  <input
+    id="new-task-title"
+    class="add-input"
+    bind:value={title}
+    onkeydown={onKeydown}
+    placeholder="Add a task…"
+  />
   <TargetColumnPicker />
   <button class="btn btn-primary" onclick={submit} disabled={!title.trim()}>
     <Plus size={15} /> Add task
@@ -39,6 +46,7 @@
   .toolbar {
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
@@ -46,7 +54,7 @@
   }
 
   .add-input {
-    flex: 1;
+    flex: 1 1 200px;
     min-width: 0;
     height: 32px;
     padding: 0 11px;
@@ -63,6 +71,5 @@
 
   .add-input:focus {
     border-color: var(--accent);
-    outline: none;
   }
 </style>

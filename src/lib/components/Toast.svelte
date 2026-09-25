@@ -1,13 +1,13 @@
 <script lang="ts">
   import { X } from '@lucide/svelte';
 
-  import { workspace } from '$lib/stores/workspace.svelte';
+  import { toast } from '$lib/stores/toast.svelte';
 </script>
 
-{#if workspace.toast}
+{#if toast.message}
   <div class="toast" role="status">
-    <span>{workspace.toast}</span>
-    <button class="icon-btn" aria-label="Dismiss" onclick={() => (workspace.toast = null)}>
+    <span>{toast.message}</span>
+    <button class="icon-btn" aria-label="Dismiss" onclick={() => toast.clear()}>
       <X size={14} />
     </button>
   </div>
