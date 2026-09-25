@@ -44,6 +44,17 @@ impl RepeatRule {
         }
     }
 
+    /// The next occurrence's due date after completing an instance due at `from`.
+    pub fn next_occurrence(self, from: DateTime<Utc>) -> DateTime<Utc> {
+        match self {
+            RepeatRule::Daily => from + chrono::Duration::days(1),
+            RepeatRule::Weekly => from + chrono::Duration::weeks(1),
+            RepeatRule::Monthly => from
+                .checked_add_months(chrono::Months::new(1))
+                .unwrap_or(from),
+        }
+    }
+
     pub fn from_db_str(value: &str) -> Option<Self> {
         match value {
             "daily" => Some(RepeatRule::Daily),

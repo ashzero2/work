@@ -60,6 +60,32 @@ pub fn complete(conn: &Connection, id: i64) -> Result<()> {
     Ok(())
 }
 
+/// Completes a task, and if it repeats, creates its next occurrence —
+/// returning that new task, if one was created.
+pub fn complete_and_recur(conn: &Connection, id: i64) -> Result<Option<Task>> {
+    complete(conn, id)?;
+    let task = get(conn, id)?.ok_or(AppError::NotFound)?;
+
+    let Some(rule) = task.repeat_rule else {
+        return Ok(None);
+    };
+
+    let due_at = task.due_at.unwrap_or_else(Utc::now);
+    let next_task = create(
+        conn,
+        NewTask {
+            title: task.title,
+            description: task.description,
+            column_id: task.column_id,
+            priority: task.priority,
+            due_at: Some(rule.next_occurrence(due_at)),
+            repeat_rule: Some(rule),
+            parent_task_id: task.parent_task_id,
+        },
+    )?;
+    Ok(Some(next_task))
+}
+
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {
     conn.execute("DELETE FROM tasks WHERE id = ?1", params![id])?;
     Ok(())
@@ -165,5 +191,55 @@ mod tests {
         let child = create(&conn, child).unwrap();
 
         assert_eq!(child.parent_task_id, Some(parent.id));
+    }
+
+    #[test]
+    fn completing_a_recurring_task_creates_its_next_occurrence() {
+        let conn = db::open_in_memory().unwrap();
+        let column = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+
+        let due = chrono::Utc::now();
+        let mut daily = new_task(column.id, "Water plants");
+        daily.repeat_rule = Some(crate::domain::RepeatRule::Daily);
+        daily.due_at = Some(due);
+        let daily = create(&conn, daily).unwrap();
+
+        let next = complete_and_recur(&conn, daily.id).unwrap().unwrap();
+        assert_eq!(next.title, "Water plants");
+        assert_eq!(next.repeat_rule, Some(crate::domain::RepeatRule::Daily));
+        assert!(next.due_at.unwrap() > due);
+        assert!(
+            get(&conn, daily.id)
+                .unwrap()
+                .unwrap()
+                .completed_at
+                .is_some()
+        );
+    }
+
+    #[test]
+    fn completing_a_non_recurring_task_creates_nothing() {
+        let conn = db::open_in_memory().unwrap();
+        let column = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let task = create(&conn, new_task(column.id, "One-off")).unwrap();
+
+        let next = complete_and_recur(&conn, task.id).unwrap();
+        assert!(next.is_none());
     }
 }

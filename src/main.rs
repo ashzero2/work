@@ -1,9 +1,24 @@
+use gpui_kit::component::Root;
+use gpui_kit::*;
+use work_dashboard::storage::{columns, db};
+use work_dashboard::ui::task_list::TaskListView;
+
 fn main() {
-    match work_dashboard::storage::db::open() {
-        Ok(_) => println!(
-            "Database ready at {:?}",
-            work_dashboard::storage::paths::db_path()
-        ),
-        Err(err) => eprintln!("Failed to open database: {err}"),
-    }
+    let conn = db::open().expect("failed to open database");
+    let column = columns::ensure_default(&conn).expect("failed to ensure a default column");
+
+    gpui_kit::application()
+        .with_assets(gpui_kit::assets::AllAssets)
+        .run(move |cx| {
+            gpui_kit::init(cx);
+
+            cx.spawn(async move |cx| {
+                cx.open_window(WindowOptions::default(), |window, cx| {
+                    let view = cx.new(|cx| TaskListView::new(conn, column.id, window, cx));
+                    cx.new(|cx| Root::new(view, window, cx))
+                })
+                .expect("failed to open window");
+            })
+            .detach();
+        });
 }

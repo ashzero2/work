@@ -24,6 +24,24 @@ pub fn create(conn: &Connection, new_column: NewColumn) -> Result<Column> {
     get(conn, id)?.ok_or(AppError::NotFound)
 }
 
+/// Returns the first column, creating a default "Tasks" column if none
+/// exist yet. Used before column management UI exists (Phase 1), so a task
+/// always has somewhere to go.
+pub fn ensure_default(conn: &Connection) -> Result<Column> {
+    let existing = list(conn)?;
+    if let Some(first) = existing.into_iter().next() {
+        return Ok(first);
+    }
+    create(
+        conn,
+        NewColumn {
+            name: "Tasks".into(),
+            color: None,
+            wip_limit: None,
+        },
+    )
+}
+
 pub fn get(conn: &Connection, id: i64) -> Result<Option<Column>> {
     conn.query_row(
         "SELECT id, name, order_index, color, wip_limit FROM columns WHERE id = ?1",
@@ -124,5 +142,16 @@ mod tests {
 
         let err = delete(&conn, column.id).unwrap_err();
         assert!(matches!(err, AppError::ColumnNotEmpty));
+    }
+
+    #[test]
+    fn ensure_default_creates_once_then_reuses_it() {
+        let conn = db::open_in_memory().unwrap();
+        let first = ensure_default(&conn).unwrap();
+        assert_eq!(first.name, "Tasks");
+
+        let second = ensure_default(&conn).unwrap();
+        assert_eq!(second.id, first.id);
+        assert_eq!(list(&conn).unwrap().len(), 1);
     }
 }
