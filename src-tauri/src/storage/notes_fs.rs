@@ -33,6 +33,15 @@ pub fn write(path: &Path, front_matter: &NoteFrontMatter, body: &str) -> Result<
     Ok(())
 }
 
+/// Removes a note file, treating an already-missing file as success.
+pub fn remove(path: &Path) -> Result<()> {
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error.into()),
+    }
+}
+
 pub fn note_path(notes_dir: &Path, file_name: &str) -> PathBuf {
     notes_dir.join(file_name)
 }
@@ -65,5 +74,16 @@ mod tests {
         assert_eq!(read_front_matter.tags, vec!["work", "q3"]);
         assert_eq!(read_front_matter.linked_task_id, Some(42));
         assert_eq!(read_body.trim(), body.trim());
+    }
+
+    #[test]
+    fn remove_is_idempotent() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("gone.md");
+        fs::write(&path, "x").unwrap();
+
+        remove(&path).unwrap();
+        assert!(!path.exists());
+        remove(&path).unwrap();
     }
 }

@@ -1,25 +1,31 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import AppHeader from '$lib/components/AppHeader.svelte';
-  import Board from '$lib/components/Board.svelte';
+  import NoteEditorDialog from '$lib/components/NoteEditorDialog.svelte';
+  import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
-  import TaskList from '$lib/components/TaskList.svelte';
+  import Sidebar from '$lib/components/Sidebar.svelte';
+  import TasksView from '$lib/components/TasksView.svelte';
   import Toast from '$lib/components/Toast.svelte';
-  import Toolbar from '$lib/components/Toolbar.svelte';
+  import { navigation } from '$lib/stores/navigation.svelte';
+  import { notes } from '$lib/stores/notes.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
-  import { initTheme, type ThemeMode } from '$lib/theme';
+  import { initTheme, setTheme, type ThemeMode, type ThemeState } from '$lib/theme';
   import type { Column } from '$lib/types';
 
   type ColumnPrompt = { mode: 'create' } | { mode: 'rename'; column: Column };
 
-  let themeMode = $state<ThemeMode>('light');
+  let theme = $state<ThemeState>({ mode: 'light', appearance: 'light', macos: false });
   let prompt = $state<ColumnPrompt | null>(null);
 
   onMount(async () => {
-    themeMode = initTheme();
-    await workspace.load();
+    theme = await initTheme();
+    await Promise.all([workspace.load(), notes.load()]);
   });
+
+  async function ontheme(mode: ThemeMode): Promise<void> {
+    theme = await setTheme(mode);
+  }
 
   function openCreateColumn(): void {
     prompt = { mode: 'create' };
@@ -40,15 +46,16 @@
 </script>
 
 <div class="app">
-  <AppHeader mode={themeMode} onmode={(mode) => (themeMode = mode)} />
-  <Toolbar onaddcolumn={openCreateColumn} />
-  <main class="content">
-    {#if workspace.viewMode === 'board'}
-      <Board onrename={openRenameColumn} onaddcolumn={openCreateColumn} />
-    {:else}
-      <TaskList />
-    {/if}
-  </main>
+  <div class="shell">
+    <Sidebar {theme} {ontheme} />
+    <main class="content">
+      {#if navigation.section === 'tasks'}
+        <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} />
+      {:else}
+        <NotesView />
+      {/if}
+    </main>
+  </div>
 
   <Toast />
 
@@ -62,6 +69,13 @@
       oncancel={() => (prompt = null)}
     />
   {/if}
+
+  {#key notes.selectedId}
+    {@const selectedNote = notes.selected}
+    {#if selectedNote}
+      <NoteEditorDialog note={selectedNote} onclose={() => notes.closeEditor()} />
+    {/if}
+  {/key}
 </div>
 
 <style>
@@ -71,8 +85,15 @@
     height: 100vh;
   }
 
+  .shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
   .content {
     flex: 1;
+    min-width: 0;
     min-height: 0;
   }
 </style>

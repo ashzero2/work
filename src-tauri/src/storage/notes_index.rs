@@ -68,19 +68,65 @@ pub fn sync_fts(conn: &Connection, id: i64, title: &str, body: &str) -> Result<(
 }
 
 /// Full-text search across note title/body, returning matching note ids
-/// ranked by relevance.
+/// ranked by relevance. The query is tokenised and quoted so raw user input
+/// can't be read as FTS5 syntax (which errors on stray quotes or operators).
 pub fn search(conn: &Connection, query: &str) -> Result<Vec<i64>> {
+    let Some(expression) = match_expression(query) else {
+        return Ok(Vec::new());
+    };
+
     let mut stmt =
         conn.prepare("SELECT rowid FROM notes_fts WHERE notes_fts MATCH ?1 ORDER BY rank")?;
-    let rows = stmt.query_map(params![query], |row| row.get::<_, i64>(0))?;
+    let rows = stmt.query_map(params![expression], |row| row.get::<_, i64>(0))?;
     rows.collect::<rusqlite::Result<Vec<_>>>()
         .map_err(Into::into)
+}
+
+pub fn update_file_path(conn: &Connection, id: i64, file_path: &str) -> Result<()> {
+    conn.execute(
+        "UPDATE notes SET file_path = ?1 WHERE id = ?2",
+        params![file_path, id],
+    )?;
+    Ok(())
+}
+
+pub fn update_title(conn: &Connection, id: i64, title: &str) -> Result<()> {
+    conn.execute(
+        "UPDATE notes SET title = ?1, updated_at = ?2 WHERE id = ?3",
+        params![title, Utc::now().to_rfc3339(), id],
+    )?;
+    Ok(())
+}
+
+pub fn update_position(conn: &Connection, id: i64, x: f64, y: f64) -> Result<()> {
+    conn.execute(
+        "UPDATE notes SET pos_x = ?1, pos_y = ?2 WHERE id = ?3",
+        params![x, y, id],
+    )?;
+    Ok(())
 }
 
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {
     conn.execute("DELETE FROM notes_fts WHERE rowid = ?1", params![id])?;
     conn.execute("DELETE FROM notes WHERE id = ?1", params![id])?;
     Ok(())
+}
+
+/// Turns free text into a safe FTS5 MATCH expression: each alphanumeric token
+/// becomes a quoted phrase, and tokens without any word characters are dropped.
+fn match_expression(query: &str) -> Option<String> {
+    let tokens: Vec<String> = query
+        .split_whitespace()
+        .map(|token| token.replace('"', ""))
+        .filter(|token| token.chars().any(char::is_alphanumeric))
+        .map(|token| format!("\"{token}\""))
+        .collect();
+
+    if tokens.is_empty() {
+        None
+    } else {
+        Some(tokens.join(" "))
+    }
 }
 
 const SELECT_NOTE: &str = "SELECT id, title, file_path, linked_task_id, color, rotation_deg, pos_x, pos_y, created_at, updated_at FROM notes {filter}";
@@ -149,5 +195,32 @@ mod tests {
 
         assert!(get(&conn, note.id).unwrap().is_none());
         assert!(search(&conn, "disposable").unwrap().is_empty());
+    }
+
+    #[test]
+    fn search_tolerates_punctuation_and_quotes() {
+        let conn = db::open_in_memory().unwrap();
+        let note = create(&conn, new_note("Quoting"), "handles \"quoted\" text").unwrap();
+
+        assert_eq!(search(&conn, "\"quoted").unwrap(), vec![note.id]);
+        assert_eq!(search(&conn, "handles quoted").unwrap(), vec![note.id]);
+        assert!(search(&conn, "   ").unwrap().is_empty());
+        assert!(search(&conn, "!!!").unwrap().is_empty());
+    }
+
+    #[test]
+    fn update_helpers_write_through() {
+        let conn = db::open_in_memory().unwrap();
+        let note = create(&conn, new_note("Before"), "original").unwrap();
+
+        update_file_path(&conn, note.id, "1-renamed.md").unwrap();
+        update_title(&conn, note.id, "After").unwrap();
+        update_position(&conn, note.id, 42.0, 84.0).unwrap();
+
+        let updated = get(&conn, note.id).unwrap().unwrap();
+        assert_eq!(updated.title, "After");
+        assert_eq!(updated.file_path, "1-renamed.md");
+        assert_eq!((updated.pos_x, updated.pos_y), (Some(42.0), Some(84.0)));
+        assert!(updated.updated_at >= note.updated_at);
     }
 }

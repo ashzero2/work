@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 /// Queryable note metadata, kept in SQLite. The note's actual text lives in
 /// its `.md` file (see `storage::notes_fs`) — this is the fast-access index.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NoteMeta {
     pub id: i64,
     pub title: String,

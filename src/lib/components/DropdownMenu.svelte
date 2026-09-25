@@ -3,11 +3,12 @@
 
   interface Props {
     align?: 'start' | 'end';
+    placement?: 'below' | 'above';
     trigger: Snippet<[{ toggle: () => void; open: boolean }]>;
     content: Snippet<[{ close: () => void }]>;
   }
 
-  let { align = 'end', trigger, content }: Props = $props();
+  let { align = 'end', placement = 'below', trigger, content }: Props = $props();
 
   let open = $state(false);
   let root: HTMLDivElement | null = null;
@@ -34,7 +35,12 @@
 <div class="dropdown" bind:this={root}>
   {@render trigger({ toggle, open })}
   {#if open}
-    <div class="popup" class:start={align === 'start'} role="menu">
+    <div
+      class="popup"
+      class:start={align === 'start'}
+      class:above={placement === 'above'}
+      role="menu"
+    >
       {@render content({ close })}
     </div>
   {/if}
@@ -62,5 +68,12 @@
   .popup.start {
     right: auto;
     left: 0;
+  }
+
+  /* For triggers near the bottom edge, where opening downward leaves the
+     window and the items become unreachable. */
+  .popup.above {
+    top: auto;
+    bottom: calc(100% + 4px);
   }
 </style>

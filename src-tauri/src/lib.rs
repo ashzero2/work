@@ -26,7 +26,16 @@ pub fn run() {
             commands::columns::list_columns,
             commands::columns::create_column,
             commands::columns::rename_column,
-            commands::columns::delete_column
+            commands::columns::delete_column,
+            commands::notes::list_notes,
+            commands::notes::create_note,
+            commands::notes::note_body,
+            commands::notes::save_note,
+            commands::notes::move_note,
+            commands::notes::delete_note,
+            commands::notes::search_notes,
+            commands::tags::list_tags,
+            commands::tags::delete_tag
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

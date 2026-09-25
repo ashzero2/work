@@ -4,6 +4,8 @@ export type RepeatRule = 'daily' | 'weekly' | 'monthly';
 
 export type ViewMode = 'board' | 'list';
 
+export type Section = 'tasks' | 'notes';
+
 export interface Task {
   id: number;
   title: string;
@@ -41,4 +43,28 @@ export interface NewColumn {
   name: string;
   color: string | null;
   wipLimit: number | null;
+}
+
+export interface Note {
+  id: number;
+  title: string;
+  filePath: string;
+  linkedTaskId: number | null;
+  color: string;
+  rotationDeg: number;
+  posX: number | null;
+  posY: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoteCard extends Note {
+  tags: string[];
+}
+
+export interface TagSummary {
+  id: number;
+  name: string;
+  color: string | null;
+  noteCount: number;
 }

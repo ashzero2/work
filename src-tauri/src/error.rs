@@ -19,6 +19,9 @@ pub enum AppError {
 
     #[error("not found")]
     NotFound,
+
+    #[error("{0}")]
+    InvalidInput(String),
 }
 
 /// Command results cross the IPC boundary as JSON, so the error needs to
