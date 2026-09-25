@@ -59,6 +59,8 @@ pub fn run() {
             commands::notes::search_notes,
             commands::tags::list_tags,
             commands::tags::delete_tag,
+            commands::settings::get_setting,
+            commands::settings::set_setting,
             commands::system::system_accent,
             commands::system::set_traffic_lights_visible
         ])

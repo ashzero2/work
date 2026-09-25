@@ -1,5 +1,6 @@
 import { deriveAccent, type Appearance } from './accent';
-import { systemAccent } from './api';
+import { getSetting, setSetting, systemAccent } from './api';
+import { toast } from './stores/toast.svelte';
 
 export type ThemeMode = 'light' | 'dark' | 'macos';
 
@@ -9,7 +10,11 @@ export interface ThemeState {
   macos: boolean;
 }
 
-const STORAGE_KEY = 'work-dashboard.theme';
+/// The choice lives in the app's own SQLite settings rather than webview
+/// `localStorage`: that storage is scoped per origin, so the dev server and the
+/// packaged app would each keep a separate answer, and it can't be inspected or
+/// recovered the way a row in `settings` can.
+const THEME_KEY = 'theme';
 
 /// Read from the webview rather than over IPC on purpose: the window is
 /// undecorated on macOS, so the layout has to know that *before* any async call
@@ -32,6 +37,14 @@ function accent(): Promise<string | null> {
       : Promise.resolve(null);
   }
   return accentRequest;
+}
+
+async function storedMode(): Promise<string | null> {
+  try {
+    return await getSetting(THEME_KEY);
+  } catch {
+    return null;
+  }
 }
 
 function apply(mode: ThemeMode, systemAccentHex: string | null): void {
@@ -61,7 +74,7 @@ function resolve(stored: string | null, macos: boolean): ThemeMode {
 /// OS appearance wins through CSS rather than being forced.
 export async function initTheme(): Promise<ThemeState> {
   const macos = detectMacos();
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = await storedMode();
   const mode = resolve(stored, macos);
   const systemAccentHex = macos ? await accent() : null;
 
@@ -85,8 +98,13 @@ export async function setTheme(next: ThemeMode): Promise<ThemeState> {
   const mode = resolve(next, macos);
   const systemAccentHex = macos ? await accent() : null;
 
-  localStorage.setItem(STORAGE_KEY, mode);
   apply(mode, systemAccentHex);
+
+  try {
+    await setSetting(THEME_KEY, mode);
+  } catch (error) {
+    toast.show(`Couldn't save the theme: ${String(error)}`);
+  }
 
   return { mode, appearance: appearanceOf(), macos };
 }

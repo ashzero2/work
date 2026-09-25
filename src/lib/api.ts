@@ -91,6 +91,14 @@ export function systemAccent(): Promise<string | null> {
   return invoke<string | null>('system_accent');
 }
 
+export function getSetting(key: string): Promise<string | null> {
+  return invoke<string | null>('get_setting', { key });
+}
+
+export function setSetting(key: string, value: string): Promise<void> {
+  return invoke<void>('set_setting', { key, value });
+}
+
 export function setTrafficLightsVisible(visible: boolean): Promise<void> {
   return invoke<void>('set_traffic_lights_visible', { visible });
 }
