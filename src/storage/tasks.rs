@@ -51,6 +51,51 @@ pub fn list_by_column(conn: &Connection, column_id: i64) -> Result<Vec<Task>> {
         .map_err(Into::into)
 }
 
+/// Every task across every column — the board and the list view both start
+/// from this same query, then render it differently.
+pub fn list_all(conn: &Connection) -> Result<Vec<Task>> {
+    let sql = SELECT_TASK.replace("{filter}", "ORDER BY created_at");
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map([], row_to_task)?;
+    rows.collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(Into::into)
+}
+
+/// Moves a task into `column_id`, inserting it directly before whichever
+/// task currently holds `before_position` in that column — fractional
+/// ranking, so no sibling ever needs renumbering.
+pub fn move_before(conn: &Connection, id: i64, column_id: i64, before_position: f64) -> Result<()> {
+    let prev_position: Option<f64> = conn.query_row(
+        "SELECT MAX(position) FROM tasks WHERE column_id = ?1 AND position < ?2",
+        params![column_id, before_position],
+        |row| row.get(0),
+    )?;
+    let new_position = match prev_position {
+        Some(prev) => (prev + before_position) / 2.0,
+        None => before_position / 2.0,
+    };
+    reposition(conn, id, column_id, new_position)
+}
+
+/// Moves a task into `column_id`, appended after every existing task there.
+pub fn move_to_end(conn: &Connection, id: i64, column_id: i64) -> Result<()> {
+    let position: f64 = conn.query_row(
+        "SELECT COALESCE(MAX(position), 0.0) + 1.0 FROM tasks WHERE column_id = ?1",
+        params![column_id],
+        |row| row.get(0),
+    )?;
+    reposition(conn, id, column_id, position)
+}
+
+fn reposition(conn: &Connection, id: i64, column_id: i64, position: f64) -> Result<()> {
+    let now = Utc::now().to_rfc3339();
+    conn.execute(
+        "UPDATE tasks SET column_id = ?1, position = ?2, updated_at = ?3 WHERE id = ?4",
+        params![column_id, position, now, id],
+    )?;
+    Ok(())
+}
+
 pub fn complete(conn: &Connection, id: i64) -> Result<()> {
     let now = Utc::now().to_rfc3339();
     conn.execute(
@@ -241,5 +286,103 @@ mod tests {
 
         let next = complete_and_recur(&conn, task.id).unwrap();
         assert!(next.is_none());
+    }
+
+    #[test]
+    fn move_before_inserts_between_siblings_without_renumbering_them() {
+        let conn = db::open_in_memory().unwrap();
+        let todo = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let doing = columns::create(
+            &conn,
+            NewColumn {
+                name: "Doing".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+
+        let a = create(&conn, new_task(todo.id, "A")).unwrap();
+        let b = create(&conn, new_task(todo.id, "B")).unwrap();
+        assert_eq!((a.position, b.position), (1.0, 2.0));
+
+        // Move a fresh task from Todo into Doing, right before B.
+        let moved = create(&conn, new_task(todo.id, "Moving")).unwrap();
+        move_before(&conn, moved.id, doing.id, b.position).unwrap();
+
+        let doing_tasks = list_by_column(&conn, doing.id).unwrap();
+        assert_eq!(doing_tasks.len(), 1);
+        assert_eq!(doing_tasks[0].title, "Moving");
+
+        // B's own position is untouched — no sibling renumbering.
+        assert_eq!(get(&conn, b.id).unwrap().unwrap().position, b.position);
+    }
+
+    #[test]
+    fn move_to_end_appends_after_existing_tasks_in_the_target_column() {
+        let conn = db::open_in_memory().unwrap();
+        let todo = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let doing = columns::create(
+            &conn,
+            NewColumn {
+                name: "Doing".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+
+        create(&conn, new_task(doing.id, "Existing")).unwrap();
+        let moved = create(&conn, new_task(todo.id, "Moving")).unwrap();
+
+        move_to_end(&conn, moved.id, doing.id).unwrap();
+
+        let doing_tasks = list_by_column(&conn, doing.id).unwrap();
+        assert_eq!(doing_tasks.len(), 2);
+        assert_eq!(doing_tasks.last().unwrap().title, "Moving");
+    }
+
+    #[test]
+    fn list_all_returns_tasks_across_every_column() {
+        let conn = db::open_in_memory().unwrap();
+        let todo = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let doing = columns::create(
+            &conn,
+            NewColumn {
+                name: "Doing".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        create(&conn, new_task(todo.id, "In todo")).unwrap();
+        create(&conn, new_task(doing.id, "In doing")).unwrap();
+
+        let all = list_all(&conn).unwrap();
+        assert_eq!(all.len(), 2);
     }
 }
