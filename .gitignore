@@ -1,6 +1,26 @@
-/target
-.DS_Store
+# Rust / Tauri build output
+/src-tauri/target/
+/src-tauri/gen/
+
+# Node / SvelteKit
+node_modules/
+/build/
+/.svelte-kit/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local tooling state
 .claude/
 .commandcode/
+
+# OS
+.DS_Store
+
+# Planning docs and agent rules are kept local-only
 /docs/
 /AGENTS.md

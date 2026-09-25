@@ -1,0 +1,227 @@
+:root {
+  --bg: #ffffff;
+  --fg: #17181c;
+  --muted-fg: #6b7280;
+  --lane: #f5f6f8;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --hover: rgba(17, 24, 39, 0.045);
+  --accent: #3355d1;
+  --accent-fg: #ffffff;
+  --danger: #d92d20;
+  --warning: #b54708;
+  --info: #1570ef;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 10px 28px rgba(16, 24, 40, 0.16);
+  --radius: 10px;
+  --radius-sm: 7px;
+  --font:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0e1013;
+    --fg: #e8eaee;
+    --muted-fg: #9aa1ad;
+    --lane: #14171c;
+    --panel: #191d23;
+    --border: #262b33;
+    --hover: rgba(255, 255, 255, 0.05);
+    --accent: #6d8bff;
+    --accent-fg: #0b0d12;
+    --danger: #f97066;
+    --warning: #e0a458;
+    --info: #6aa9ff;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0e1013;
+  --fg: #e8eaee;
+  --muted-fg: #9aa1ad;
+  --lane: #14171c;
+  --panel: #191d23;
+  --border: #262b33;
+  --hover: rgba(255, 255, 255, 0.05);
+  --accent: #6d8bff;
+  --accent-fg: #0b0d12;
+  --danger: #f97066;
+  --warning: #e0a458;
+  --info: #6aa9ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input {
+  font: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted-fg) 30%, transparent);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--hover);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-fg);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--tone) 82%, var(--fg));
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+}
+
+.chip-muted {
+  --tone: var(--muted-fg);
+}
+
+.chip-info {
+  --tone: var(--info);
+}
+
+.chip-warning {
+  --tone: var(--warning);
+}
+
+.chip-danger {
+  --tone: var(--danger);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: var(--hover);
+}
+
+.menu-item.danger {
+  color: var(--danger);
+}
+
+.menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--border);
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.drag-over {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.drop-before::before,
+.drop-after::after {
+  background-color: var(--accent);
+}
