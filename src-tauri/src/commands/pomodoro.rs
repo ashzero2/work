@@ -1,11 +1,14 @@
 use std::sync::Mutex;
 
+use chrono::Duration;
 use rusqlite::Connection;
 use tauri::State;
 
-use crate::domain::{PomodoroSession, SessionKind};
+use crate::domain::{PomodoroSession, ReminderKind, SessionKind};
 use crate::error::Result;
+use crate::reminder_sync;
 use crate::storage::pomodoro::{self, PomodoroSettings};
+use crate::storage::reminders;
 
 #[tauri::command]
 pub fn start_session(
@@ -14,7 +17,10 @@ pub fn start_session(
     planned_seconds: i64,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<PomodoroSession> {
-    pomodoro::start(&state.lock().unwrap(), kind, task_id, planned_seconds)
+    let conn = state.lock().unwrap();
+    let session = pomodoro::start(&conn, kind, task_id, planned_seconds)?;
+    announce_session_end(&conn, &session)?;
+    Ok(session)
 }
 
 #[tauri::command]
@@ -23,7 +29,26 @@ pub fn finish_session(
     completed: bool,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<PomodoroSession> {
-    pomodoro::finish(&state.lock().unwrap(), id, completed)
+    let conn = state.lock().unwrap();
+    let session = pomodoro::finish(&conn, id, completed)?;
+    // However the session ended — completed, skipped, or stopped early — its
+    // reminder is no longer something to announce.
+    reminders::withdraw_for_session(&conn, session.id)?;
+    reminder_sync::sync(&conn)?;
+    Ok(session)
+}
+
+/// A work session's end is what a break reminder announces, and it is registered
+/// with the OS as soon as the session starts rather than posted when it comes
+/// due: the window is often behind something else by then.
+fn announce_session_end(conn: &Connection, session: &PomodoroSession) -> Result<()> {
+    if session.kind != SessionKind::Work {
+        return Ok(());
+    }
+
+    let trigger_at = session.started_at + Duration::seconds(session.planned_seconds);
+    reminders::create_for_session(conn, session.id, ReminderKind::PomodoroBreak, trigger_at)?;
+    reminder_sync::sync(conn)
 }
 
 #[tauri::command]
