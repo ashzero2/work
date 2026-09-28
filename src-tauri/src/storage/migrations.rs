@@ -82,6 +82,10 @@ CREATE TABLE settings (
 );
 "#;
 
-const MIGRATIONS_SLICE: &[M<'_>] = &[M::up(INITIAL_SCHEMA)];
+const ADD_REMINDER_SESSION: &str = r#"
+ALTER TABLE reminders ADD COLUMN session_id INTEGER REFERENCES pomodoro_sessions(id);
+"#;
+
+const MIGRATIONS_SLICE: &[M<'_>] = &[M::up(INITIAL_SCHEMA), M::up(ADD_REMINDER_SESSION)];
 
 pub const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);

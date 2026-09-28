@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ReminderKind {
     TaskDue,
     PriorityAlert,
@@ -9,6 +11,15 @@ pub enum ReminderKind {
 }
 
 impl ReminderKind {
+    /// Every kind in one place, so the toggles and any kind picker can't fall
+    /// out of step with the enum.
+    pub const ALL: [ReminderKind; 4] = [
+        ReminderKind::TaskDue,
+        ReminderKind::PriorityAlert,
+        ReminderKind::PomodoroBreak,
+        ReminderKind::Custom,
+    ];
+
     pub fn as_str(self) -> &'static str {
         match self {
             ReminderKind::TaskDue => "task_due",
@@ -29,7 +40,8 @@ impl ReminderKind {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ReminderStatus {
     Pending,
     Fired,
@@ -58,11 +70,15 @@ impl ReminderStatus {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Reminder {
     pub id: i64,
     pub kind: ReminderKind,
     pub task_id: Option<i64>,
+    /// Set when the reminder belongs to a Pomodoro session, so ending that
+    /// session can withdraw it.
+    pub session_id: Option<i64>,
     pub trigger_at: DateTime<Utc>,
     pub status: ReminderStatus,
     pub snoozed_until: Option<DateTime<Utc>>,

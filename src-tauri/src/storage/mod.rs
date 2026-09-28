@@ -6,6 +6,7 @@ pub mod notes_fs;
 pub mod notes_index;
 pub mod paths;
 pub mod pomodoro;
+pub mod reminders;
 pub mod settings;
 pub mod tags;
 pub mod tasks;
