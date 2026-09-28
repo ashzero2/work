@@ -28,12 +28,15 @@
     await Promise.all([workspace.load(), notes.load(), pomodoro.load(), reminders.load()]);
   });
 
-  // A notification's Snooze or Dismiss button changes reminder state in the
-  // backend, which the window would otherwise not hear about.
+  // Backend changes this window didn't start: a notification's Snooze or
+  // Dismiss button, or a quick capture filed from the global shortcut.
   $effect(() => {
-    const pending = listen('reminders:changed', () => void reminders.load());
+    const pending = Promise.all([
+      listen('reminders:changed', () => void reminders.load()),
+      listen('tasks:changed', () => void workspace.load())
+    ]);
     return () => {
-      void pending.then((off) => off());
+      void pending.then((unlisten) => unlisten.forEach((off) => off()));
     };
   });
 

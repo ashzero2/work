@@ -191,3 +191,11 @@ export function setKindEnabled(kind: ReminderKind, enabled: boolean): Promise<vo
 export function openNotificationSettings(): Promise<void> {
   return invoke<void>('open_notification_settings');
 }
+
+export function captureTask(title: string): Promise<void> {
+  return invoke<void>('capture_task', { title });
+}
+
+export function hideCaptureWindow(): Promise<void> {
+  return invoke<void>('hide_capture_window');
+}
