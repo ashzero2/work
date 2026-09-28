@@ -14,6 +14,9 @@ pub enum AppError {
     #[error("frontmatter error: {0}")]
     FrontMatter(String),
 
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
+
     #[error("column still has tasks; move them out before deleting")]
     ColumnNotEmpty,
 

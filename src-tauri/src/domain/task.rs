@@ -20,6 +20,15 @@ impl Priority {
         }
     }
 
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Priority::None => "none",
+            Priority::Low => "low",
+            Priority::Medium => "medium",
+            Priority::High => "high",
+        }
+    }
+
     pub fn from_i64(value: i64) -> Self {
         match value {
             1 => Priority::Low,

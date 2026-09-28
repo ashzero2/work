@@ -1,6 +1,7 @@
 mod commands;
 pub mod domain;
 pub mod error;
+mod export;
 mod platform;
 mod quick_capture;
 mod reminder_sync;
@@ -19,6 +20,7 @@ use crate::domain::ReminderStatus;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let conn = storage::db::open()?;
             storage::columns::ensure_default(&conn)?;
@@ -114,7 +116,10 @@ pub fn run() {
             commands::system::system_accent,
             commands::system::set_traffic_lights_visible,
             commands::system::capture_task,
-            commands::system::hide_capture_window
+            commands::system::hide_capture_window,
+            commands::system::get_quick_capture_shortcut,
+            commands::system::set_quick_capture_shortcut,
+            commands::export::export_tasks
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import type {
   Column,
+  ExportFormat,
   NewColumn,
   NewTask,
   NoteCard,
@@ -11,6 +12,7 @@ import type {
   Reminder,
   ReminderKind,
   SessionKind,
+  ShortcutState,
   TagSummary,
   Task
 } from './types';
@@ -198,4 +200,16 @@ export function captureTask(title: string): Promise<void> {
 
 export function hideCaptureWindow(): Promise<void> {
   return invoke<void>('hide_capture_window');
+}
+
+export function getQuickCaptureShortcut(): Promise<ShortcutState> {
+  return invoke<ShortcutState>('get_quick_capture_shortcut');
+}
+
+export function setQuickCaptureShortcut(shortcut: string): Promise<ShortcutState> {
+  return invoke<ShortcutState>('set_quick_capture_shortcut', { shortcut });
+}
+
+export function exportTasks(format: ExportFormat): Promise<string | null> {
+  return invoke<string | null>('export_tasks', { format });
 }

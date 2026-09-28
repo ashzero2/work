@@ -4,7 +4,9 @@ export type RepeatRule = 'daily' | 'weekly' | 'monthly';
 
 export type ViewMode = 'board' | 'list';
 
-export type Section = 'tasks' | 'notes' | 'focus' | 'reminders';
+export type Section = 'tasks' | 'notes' | 'focus' | 'reminders' | 'settings';
+
+export type ExportFormat = 'json' | 'csv';
 
 export type SessionKind = 'work' | 'break' | 'long_break';
 
@@ -113,4 +115,13 @@ export interface NotificationState {
   /// null while the permission prompt has not been answered.
   authorized: boolean | null;
   enabled: KindToggle[];
+}
+
+export interface ShortcutState {
+  /// What is bound now, or null when nothing could be registered.
+  shortcut: string | null;
+  /// What was asked for, which is what the recorder shows even when the binding
+  /// itself was refused.
+  preferred: string;
+  default: string;
 }

@@ -2,9 +2,10 @@
   import { BellOff, Clock, Plus, Settings, Trash2 } from '@lucide/svelte';
 
   import { formatMoment, fromDatetimeLocal, toDatetimeLocal } from '$lib/format';
-  import { kindHint, kindLabel, reminders, statusLabel } from '$lib/stores/reminders.svelte';
+  import { kindLabel, reminders, statusLabel } from '$lib/stores/reminders.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Reminder } from '$lib/types';
+  import NotificationKindToggles from './NotificationKindToggles.svelte';
   import ReminderDialog from './ReminderDialog.svelte';
 
   let creating = $state(false);
@@ -69,22 +70,7 @@
 
     <div class="block">
       <span class="block-label">Notify me about</span>
-      <div class="toggles">
-        {#each reminders.toggles as toggle (toggle.kind)}
-          <label class="toggle">
-            <input
-              type="checkbox"
-              checked={toggle.enabled}
-              onchange={(event) =>
-                void reminders.setEnabled(toggle.kind, event.currentTarget.checked)}
-            />
-            <span class="toggle-text">
-              <span class="toggle-label">{kindLabel[toggle.kind]}</span>
-              <span class="toggle-hint">{kindHint[toggle.kind]}</span>
-            </span>
-          </label>
-        {/each}
-      </div>
+      <NotificationKindToggles />
     </div>
 
     <div class="block">
@@ -253,45 +239,6 @@
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-  }
-
-  .toggles {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .toggle {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 7px 9px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-  }
-
-  .toggle:hover {
-    background: var(--lane);
-  }
-
-  .toggle input {
-    margin-top: 2px;
-    accent-color: var(--accent);
-  }
-
-  .toggle-text {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .toggle-label {
-    font-size: 13px;
-  }
-
-  .toggle-hint {
-    color: var(--muted-fg);
-    font-size: 11px;
   }
 
   .hint {

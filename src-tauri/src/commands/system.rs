@@ -70,3 +70,19 @@ pub fn capture_task(
 pub fn hide_capture_window(app: AppHandle) {
     crate::quick_capture::hide(&app);
 }
+
+/// The quick-capture shortcut as configured, along with what is actually bound —
+/// the two differ when the stored combination was refused at startup.
+#[tauri::command]
+pub fn get_quick_capture_shortcut(app: AppHandle) -> crate::quick_capture::ShortcutStatus {
+    crate::quick_capture::status(&app)
+}
+
+#[tauri::command]
+pub fn set_quick_capture_shortcut(
+    shortcut: String,
+    app: AppHandle,
+    state: State<'_, Mutex<Connection>>,
+) -> Result<crate::quick_capture::ShortcutStatus> {
+    crate::quick_capture::set_preference(&app, &state.lock().unwrap(), &shortcut)
+}

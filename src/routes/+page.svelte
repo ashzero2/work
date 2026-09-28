@@ -7,6 +7,7 @@
   import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
   import RemindersView from '$lib/components/RemindersView.svelte';
+  import SettingsView from '$lib/components/SettingsView.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TasksView from '$lib/components/TasksView.svelte';
   import Toast from '$lib/components/Toast.svelte';
@@ -14,17 +15,16 @@
   import { notes } from '$lib/stores/notes.svelte';
   import { pomodoro } from '$lib/stores/pomodoro.svelte';
   import { reminders } from '$lib/stores/reminders.svelte';
+  import { theme } from '$lib/stores/theme.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
-  import { initTheme, setTheme, type ThemeMode, type ThemeState } from '$lib/theme';
   import type { Column } from '$lib/types';
 
   type ColumnPrompt = { mode: 'create' } | { mode: 'rename'; column: Column };
 
-  let theme = $state<ThemeState>({ mode: 'light', appearance: 'light', macos: false });
   let prompt = $state<ColumnPrompt | null>(null);
 
   onMount(async () => {
-    theme = await initTheme();
+    await theme.load();
     await Promise.all([workspace.load(), notes.load(), pomodoro.load(), reminders.load()]);
   });
 
@@ -39,10 +39,6 @@
       void pending.then((unlisten) => unlisten.forEach((off) => off()));
     };
   });
-
-  async function ontheme(mode: ThemeMode): Promise<void> {
-    theme = await setTheme(mode);
-  }
 
   function openCreateColumn(): void {
     prompt = { mode: 'create' };
@@ -64,7 +60,7 @@
 
 <div class="app">
   <div class="shell">
-    <Sidebar {theme} {ontheme} />
+    <Sidebar />
     <main class="content">
       {#if navigation.section === 'tasks'}
         <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} />
@@ -72,8 +68,10 @@
         <NotesView />
       {:else if navigation.section === 'focus'}
         <FocusView />
-      {:else}
+      {:else if navigation.section === 'reminders'}
         <RemindersView />
+      {:else}
+        <SettingsView />
       {/if}
     </main>
   </div>

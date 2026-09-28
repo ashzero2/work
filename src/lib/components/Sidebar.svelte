@@ -1,55 +1,24 @@
 <script lang="ts">
-  import {
-    Bell,
-    Check,
-    ListTodo,
-    Monitor,
-    Moon,
-    PanelLeft,
-    StickyNote,
-    Sun,
-    Tags,
-    Timer,
-    Trash2
-  } from '@lucide/svelte';
+  import { Bell, ListTodo, PanelLeft, Settings, StickyNote, Tags, Timer, Trash2 } from '@lucide/svelte';
 
   import { setTrafficLightsVisible } from '$lib/api';
   import { navigation } from '$lib/stores/navigation.svelte';
   import { notes } from '$lib/stores/notes.svelte';
-  import { availableModes, themeModeLabel, type ThemeMode, type ThemeState } from '$lib/theme';
-  import DropdownMenu from './DropdownMenu.svelte';
+  import { theme } from '$lib/stores/theme.svelte';
   import FocusIndicator from './FocusIndicator.svelte';
 
-  interface Props {
-    theme: ThemeState;
-    ontheme: (mode: ThemeMode) => void;
-  }
-
-  let { theme, ontheme }: Props = $props();
-
   const collapsed = $derived(navigation.sidebarCollapsed);
-  const chromeless = $derived(theme.macos);
-  const modes = $derived(availableModes(theme.macos));
+  const chromeless = $derived(theme.state.macos);
   const navIcon = $derived(collapsed ? 18 : 15);
 
   $effect(() => {
-    if (!theme.macos) return;
+    if (!theme.state.macos) return;
     // Collapsed, the lights have nothing to sit beside — and the rail is too
     // narrow to hold both them and the toggle — so they are hidden until the
     // sidebar is expanded again.
     void setTrafficLightsVisible(!collapsed);
   });
 </script>
-
-{#snippet modeIcon(mode: ThemeMode)}
-  {#if mode === 'dark'}
-    <Moon size={16} />
-  {:else if mode === 'macos'}
-    <Monitor size={16} />
-  {:else}
-    <Sun size={16} />
-  {/if}
-{/snippet}
 
 <aside class="sidebar" class:collapsed class:chromeless>
   <div class="control-row" data-tauri-drag-region={chromeless ? '' : undefined}>
@@ -100,6 +69,15 @@
       <Bell size={navIcon} />
       {#if !collapsed}<span>Reminders</span>{/if}
     </button>
+    <button
+      class="nav-item"
+      class:active={navigation.section === 'settings'}
+      aria-current={navigation.section === 'settings'}
+      onclick={() => navigation.setSection('settings')}
+    >
+      <Settings size={navIcon} />
+      {#if !collapsed}<span>Settings</span>{/if}
+    </button>
   </nav>
 
   {#if navigation.section === 'notes' && !collapsed}
@@ -143,34 +121,6 @@
     {#if !collapsed}
       <FocusIndicator />
     {/if}
-    <DropdownMenu align="start" placement="above">
-      {#snippet trigger({ toggle })}
-        <button
-          class="icon-btn"
-          aria-label={`Theme: ${themeModeLabel[theme.mode]}`}
-          title={`Theme: ${themeModeLabel[theme.mode]}`}
-          onclick={toggle}
-        >
-          {@render modeIcon(theme.mode)}
-        </button>
-      {/snippet}
-      {#snippet content({ close })}
-        {#each modes as mode (mode)}
-          <button
-            class="menu-item"
-            onclick={() => {
-              ontheme(mode);
-              close();
-            }}
-          >
-            <span class="mode-icon">
-              {#if mode === theme.mode}<Check size={14} />{/if}
-            </span>
-            {themeModeLabel[mode]}
-          </button>
-        {/each}
-      {/snippet}
-    </DropdownMenu>
   </div>
 </aside>
 
@@ -342,13 +292,5 @@
 
   .sidebar.collapsed .foot {
     justify-content: center;
-  }
-
-  .mode-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 14px;
-    color: var(--accent);
   }
 </style>
