@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    Bell,
     Check,
     ListTodo,
     Monitor,
@@ -89,6 +90,15 @@
     >
       <Timer size={navIcon} />
       {#if !collapsed}<span>Focus</span>{/if}
+    </button>
+    <button
+      class="nav-item"
+      class:active={navigation.section === 'reminders'}
+      aria-current={navigation.section === 'reminders'}
+      onclick={() => navigation.setSection('reminders')}
+    >
+      <Bell size={navIcon} />
+      {#if !collapsed}<span>Reminders</span>{/if}
     </button>
   </nav>
 

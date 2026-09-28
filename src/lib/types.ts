@@ -4,9 +4,13 @@ export type RepeatRule = 'daily' | 'weekly' | 'monthly';
 
 export type ViewMode = 'board' | 'list';
 
-export type Section = 'tasks' | 'notes' | 'focus';
+export type Section = 'tasks' | 'notes' | 'focus' | 'reminders';
 
 export type SessionKind = 'work' | 'break' | 'long_break';
+
+export type ReminderKind = 'task_due' | 'priority_alert' | 'pomodoro_break' | 'custom';
+
+export type ReminderStatus = 'pending' | 'fired' | 'snoozed' | 'dismissed';
 
 export interface Task {
   id: number;
@@ -86,4 +90,27 @@ export interface PomodoroSettings {
   breakSeconds: number;
   longBreakSeconds: number;
   sessionsPerLongBreak: number;
+}
+
+export interface Reminder {
+  id: number;
+  kind: ReminderKind;
+  taskId: number | null;
+  sessionId: number | null;
+  triggerAt: string;
+  status: ReminderStatus;
+  snoozedUntil: string | null;
+  systemNotificationTag: string | null;
+}
+
+export interface KindToggle {
+  kind: ReminderKind;
+  enabled: boolean;
+}
+
+export interface NotificationState {
+  available: boolean;
+  /// null while the permission prompt has not been answered.
+  authorized: boolean | null;
+  enabled: KindToggle[];
 }

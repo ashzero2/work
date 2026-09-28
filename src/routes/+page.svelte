@@ -1,16 +1,19 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { listen } from '@tauri-apps/api/event';
 
   import FocusView from '$lib/components/FocusView.svelte';
   import NoteEditorDialog from '$lib/components/NoteEditorDialog.svelte';
   import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
+  import RemindersView from '$lib/components/RemindersView.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TasksView from '$lib/components/TasksView.svelte';
   import Toast from '$lib/components/Toast.svelte';
   import { navigation } from '$lib/stores/navigation.svelte';
   import { notes } from '$lib/stores/notes.svelte';
   import { pomodoro } from '$lib/stores/pomodoro.svelte';
+  import { reminders } from '$lib/stores/reminders.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import { initTheme, setTheme, type ThemeMode, type ThemeState } from '$lib/theme';
   import type { Column } from '$lib/types';
@@ -22,7 +25,16 @@
 
   onMount(async () => {
     theme = await initTheme();
-    await Promise.all([workspace.load(), notes.load(), pomodoro.load()]);
+    await Promise.all([workspace.load(), notes.load(), pomodoro.load(), reminders.load()]);
+  });
+
+  // A notification's Snooze or Dismiss button changes reminder state in the
+  // backend, which the window would otherwise not hear about.
+  $effect(() => {
+    const pending = listen('reminders:changed', () => void reminders.load());
+    return () => {
+      void pending.then((off) => off());
+    };
   });
 
   async function ontheme(mode: ThemeMode): Promise<void> {
@@ -55,8 +67,10 @@
         <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} />
       {:else if navigation.section === 'notes'}
         <NotesView />
-      {:else}
+      {:else if navigation.section === 'focus'}
         <FocusView />
+      {:else}
+        <RemindersView />
       {/if}
     </main>
   </div>

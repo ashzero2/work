@@ -5,8 +5,11 @@ import type {
   NewColumn,
   NewTask,
   NoteCard,
+  NotificationState,
   PomodoroSession,
   PomodoroSettings,
+  Reminder,
+  ReminderKind,
   SessionKind,
   TagSummary,
   Task
@@ -147,4 +150,44 @@ export function getPomodoroSettings(): Promise<PomodoroSettings> {
 
 export function setPomodoroSettings(settings: PomodoroSettings): Promise<PomodoroSettings> {
   return invoke<PomodoroSettings>('set_pomodoro_settings', { settings });
+}
+
+export function listReminders(): Promise<Reminder[]> {
+  return invoke<Reminder[]>('list_reminders');
+}
+
+export function createReminder(
+  kind: ReminderKind,
+  taskId: number | null,
+  triggerAt: string
+): Promise<Reminder> {
+  return invoke<Reminder>('create_reminder', { kind, taskId, triggerAt });
+}
+
+export function rescheduleReminder(id: number, triggerAt: string): Promise<Reminder> {
+  return invoke<Reminder>('reschedule_reminder', { id, triggerAt });
+}
+
+export function snoozeReminder(id: number): Promise<Reminder> {
+  return invoke<Reminder>('snooze_reminder', { id });
+}
+
+export function dismissReminder(id: number): Promise<Reminder> {
+  return invoke<Reminder>('dismiss_reminder', { id });
+}
+
+export function deleteReminder(id: number): Promise<void> {
+  return invoke<void>('delete_reminder', { id });
+}
+
+export function notificationState(): Promise<NotificationState> {
+  return invoke<NotificationState>('notification_state');
+}
+
+export function setKindEnabled(kind: ReminderKind, enabled: boolean): Promise<void> {
+  return invoke<void>('set_kind_enabled', { kind, enabled });
+}
+
+export function openNotificationSettings(): Promise<void> {
+  return invoke<void>('open_notification_settings');
 }
