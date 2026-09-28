@@ -24,8 +24,11 @@ tempfile = "3.27"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 window-vibrancy = "0.6"
+objc2 = "0.6"
+block2 = "0.6"
 objc2-app-kit = { version = "0.3", features = ["NSColor", "NSColorSpace", "NSWindow", "NSButton", "NSView", "objc2-core-foundation"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSGeometry"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSGeometry", "NSString", "NSSet", "NSArray", "NSError", "NSBundle"] }
+objc2-user-notifications = { version = "0.3", features = ["UNUserNotificationCenter", "UNNotification", "UNNotificationAction", "UNNotificationCategory", "UNNotificationContent", "UNNotificationRequest", "UNNotificationResponse", "UNNotificationSettings", "UNNotificationTrigger", "block2"] }
 
 [profile.release]
 codegen-units = 1

@@ -1,9 +1,28 @@
+use std::sync::OnceLock;
+
 #[cfg(target_os = "macos")]
 mod accent;
+#[cfg(target_os = "macos")]
+mod notifications;
 #[cfg(target_os = "macos")]
 mod traffic_lights;
 #[cfg(target_os = "macos")]
 mod vibrancy;
+
+/// The action identifier and the request it came from, reported when the user
+/// presses a notification's button.
+pub type NotificationActionHandler = Box<dyn Fn(&str, &str) + Send + Sync>;
+
+/// Notification action identifiers. Defined here rather than next to the macOS
+/// code so the handler that maps an action back onto reminder state can name
+/// them on every platform.
+pub const ACTION_SNOOZE: &str = "work-dashboard.snooze";
+pub const ACTION_DISMISS: &str = "work-dashboard.dismiss";
+
+/// What the user answered when asked for permission. `None` until they have been
+/// asked, which is what lets the UI say "we asked and you said no" rather than
+/// quietly doing nothing.
+static AUTHORIZED: OnceLock<bool> = OnceLock::new();
 
 /// The macOS accent colour as `#RRGGBB`, or `None` where the platform has no
 /// such notion or the system value can't be converted.
@@ -49,4 +68,65 @@ pub fn align_traffic_lights_soon(window: &tauri::WebviewWindow) {
     traffic_lights::align_soon(window);
     #[cfg(not(target_os = "macos"))]
     let _ = window;
+}
+
+/// True where the OS can actually deliver notifications. False off macOS, and
+/// false whenever the process runs without a bundle identifier (`tauri dev`),
+/// where the framework raises rather than failing quietly.
+pub fn notifications_available() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        notifications::available()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
+    }
+}
+
+/// Installs the notification delegate and asks for permission. A no-op
+/// wherever notifications aren't available.
+pub fn start_notifications(handler: NotificationActionHandler) {
+    #[cfg(target_os = "macos")]
+    {
+        notifications::install(handler);
+        notifications::request_authorization(Box::new(|granted| {
+            let _ = AUTHORIZED.set(granted);
+        }));
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = handler;
+}
+
+/// The answer to the permission prompt: `None` while it is still open or was
+/// never asked, which is a different state from a refusal.
+pub fn notifications_authorized() -> Option<bool> {
+    AUTHORIZED.get().copied()
+}
+
+/// Opens the OS notification settings pane. Reaching permission here is the
+/// recovery path when a reminder would otherwise never appear.
+pub fn open_notification_settings() {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = std::process::Command::new("open")
+            .arg("x-apple.systempreferences:com.apple.preference.notifications")
+            .spawn();
+    }
+}
+
+/// Posts a notification carrying the Snooze/Dismiss buttons.
+pub fn post_notification(identifier: &str, title: &str, body: &str, after_seconds: f64) {
+    #[cfg(target_os = "macos")]
+    notifications::post(identifier, title, body, after_seconds);
+    #[cfg(not(target_os = "macos"))]
+    let _ = (identifier, title, body, after_seconds);
+}
+
+/// Drops pending notifications that are no longer wanted.
+pub fn cancel_notifications(identifiers: &[String]) {
+    #[cfg(target_os = "macos")]
+    notifications::cancel(identifiers);
+    #[cfg(not(target_os = "macos"))]
+    let _ = identifiers;
 }
