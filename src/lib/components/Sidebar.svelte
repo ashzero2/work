@@ -8,6 +8,7 @@
     StickyNote,
     Sun,
     Tags,
+    Timer,
     Trash2
   } from '@lucide/svelte';
 
@@ -16,6 +17,7 @@
   import { notes } from '$lib/stores/notes.svelte';
   import { availableModes, themeModeLabel, type ThemeMode, type ThemeState } from '$lib/theme';
   import DropdownMenu from './DropdownMenu.svelte';
+  import FocusIndicator from './FocusIndicator.svelte';
 
   interface Props {
     theme: ThemeState;
@@ -79,6 +81,15 @@
       <StickyNote size={navIcon} />
       {#if !collapsed}<span>Notes</span>{/if}
     </button>
+    <button
+      class="nav-item"
+      class:active={navigation.section === 'focus'}
+      aria-current={navigation.section === 'focus'}
+      onclick={() => navigation.setSection('focus')}
+    >
+      <Timer size={navIcon} />
+      {#if !collapsed}<span>Focus</span>{/if}
+    </button>
   </nav>
 
   {#if navigation.section === 'notes' && !collapsed}
@@ -119,6 +130,9 @@
   {/if}
 
   <div class="foot">
+    {#if !collapsed}
+      <FocusIndicator />
+    {/if}
     <DropdownMenu align="start" placement="above">
       {#snippet trigger({ toggle })}
         <button
@@ -309,6 +323,8 @@
 
   .foot {
     display: flex;
+    align-items: center;
+    gap: 6px;
     justify-content: flex-start;
     margin-top: auto;
     padding: 0 2px;

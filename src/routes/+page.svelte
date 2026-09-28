@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
+  import FocusView from '$lib/components/FocusView.svelte';
   import NoteEditorDialog from '$lib/components/NoteEditorDialog.svelte';
   import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
@@ -9,6 +10,7 @@
   import Toast from '$lib/components/Toast.svelte';
   import { navigation } from '$lib/stores/navigation.svelte';
   import { notes } from '$lib/stores/notes.svelte';
+  import { pomodoro } from '$lib/stores/pomodoro.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import { initTheme, setTheme, type ThemeMode, type ThemeState } from '$lib/theme';
   import type { Column } from '$lib/types';
@@ -20,7 +22,7 @@
 
   onMount(async () => {
     theme = await initTheme();
-    await Promise.all([workspace.load(), notes.load()]);
+    await Promise.all([workspace.load(), notes.load(), pomodoro.load()]);
   });
 
   async function ontheme(mode: ThemeMode): Promise<void> {
@@ -51,8 +53,10 @@
     <main class="content">
       {#if navigation.section === 'tasks'}
         <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} />
-      {:else}
+      {:else if navigation.section === 'notes'}
         <NotesView />
+      {:else}
+        <FocusView />
       {/if}
     </main>
   </div>

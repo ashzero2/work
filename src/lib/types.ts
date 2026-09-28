@@ -4,7 +4,9 @@ export type RepeatRule = 'daily' | 'weekly' | 'monthly';
 
 export type ViewMode = 'board' | 'list';
 
-export type Section = 'tasks' | 'notes';
+export type Section = 'tasks' | 'notes' | 'focus';
+
+export type SessionKind = 'work' | 'break' | 'long_break';
 
 export interface Task {
   id: number;
@@ -67,4 +69,21 @@ export interface TagSummary {
   name: string;
   color: string | null;
   noteCount: number;
+}
+
+export interface PomodoroSession {
+  id: number;
+  taskId: number | null;
+  kind: SessionKind;
+  plannedSeconds: number;
+  startedAt: string;
+  endedAt: string | null;
+  completed: boolean;
+}
+
+export interface PomodoroSettings {
+  workSeconds: number;
+  breakSeconds: number;
+  longBreakSeconds: number;
+  sessionsPerLongBreak: number;
 }

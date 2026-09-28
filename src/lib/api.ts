@@ -1,6 +1,16 @@
 import { invoke } from '@tauri-apps/api/core';
 
-import type { Column, NewColumn, NewTask, NoteCard, TagSummary, Task } from './types';
+import type {
+  Column,
+  NewColumn,
+  NewTask,
+  NoteCard,
+  PomodoroSession,
+  PomodoroSettings,
+  SessionKind,
+  TagSummary,
+  Task
+} from './types';
 
 export function listTasks(): Promise<Task[]> {
   return invoke<Task[]>('list_tasks');
@@ -101,4 +111,40 @@ export function setSetting(key: string, value: string): Promise<void> {
 
 export function setTrafficLightsVisible(visible: boolean): Promise<void> {
   return invoke<void>('set_traffic_lights_visible', { visible });
+}
+
+export function startSession(
+  kind: SessionKind,
+  taskId: number | null,
+  plannedSeconds: number
+): Promise<PomodoroSession> {
+  return invoke<PomodoroSession>('start_session', { kind, taskId, plannedSeconds });
+}
+
+export function finishSession(id: number, completed: boolean): Promise<PomodoroSession> {
+  return invoke<PomodoroSession>('finish_session', { id, completed });
+}
+
+export function reconcileSession(): Promise<PomodoroSession | null> {
+  return invoke<PomodoroSession | null>('reconcile_session');
+}
+
+export function nextPhase(): Promise<SessionKind> {
+  return invoke<SessionKind>('next_phase');
+}
+
+export function cyclePosition(): Promise<number> {
+  return invoke<number>('cycle_position');
+}
+
+export function recentSessions(limit: number): Promise<PomodoroSession[]> {
+  return invoke<PomodoroSession[]>('recent_sessions', { limit });
+}
+
+export function getPomodoroSettings(): Promise<PomodoroSettings> {
+  return invoke<PomodoroSettings>('get_pomodoro_settings');
+}
+
+export function setPomodoroSettings(settings: PomodoroSettings): Promise<PomodoroSettings> {
+  return invoke<PomodoroSettings>('set_pomodoro_settings', { settings });
 }

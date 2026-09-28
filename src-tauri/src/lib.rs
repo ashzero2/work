@@ -61,6 +61,14 @@ pub fn run() {
             commands::tags::delete_tag,
             commands::settings::get_setting,
             commands::settings::set_setting,
+            commands::pomodoro::start_session,
+            commands::pomodoro::finish_session,
+            commands::pomodoro::reconcile_session,
+            commands::pomodoro::next_phase,
+            commands::pomodoro::cycle_position,
+            commands::pomodoro::recent_sessions,
+            commands::pomodoro::get_pomodoro_settings,
+            commands::pomodoro::set_pomodoro_settings,
             commands::system::system_accent,
             commands::system::set_traffic_lights_visible
         ])
