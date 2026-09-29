@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use chrono::{DateTime, Duration, Utc};
 use rusqlite::Connection;
 use serde::Serialize;
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 
 use crate::domain::{Reminder, ReminderKind, ReminderStatus};
 use crate::error::Result;
@@ -113,11 +113,19 @@ pub fn notification_state(state: State<'_, Mutex<Connection>>) -> Result<Notific
 pub fn set_kind_enabled(
     kind: ReminderKind,
     enabled: bool,
+    app: AppHandle,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<()> {
-    let conn = state.lock().unwrap();
-    reminders::set_enabled(&conn, kind, enabled)?;
-    reminder_sync::sync(&conn)
+    {
+        let conn = state.lock().unwrap();
+        reminders::set_enabled(&conn, kind, enabled)?;
+        reminder_sync::sync(&conn)?;
+    }
+
+    // The toggles are editable from two windows, so the other one has to hear
+    // about it.
+    let _ = app.emit(crate::SETTINGS_CHANGED, ());
+    Ok(())
 }
 
 /// The recovery path when permission was refused: send the user where they can

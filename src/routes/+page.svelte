@@ -2,12 +2,12 @@
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
 
+  import CommandPalette from '$lib/components/CommandPalette.svelte';
   import FocusView from '$lib/components/FocusView.svelte';
   import NoteEditorDialog from '$lib/components/NoteEditorDialog.svelte';
   import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
   import RemindersView from '$lib/components/RemindersView.svelte';
-  import SettingsView from '$lib/components/SettingsView.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TasksView from '$lib/components/TasksView.svelte';
   import Toast from '$lib/components/Toast.svelte';
@@ -22,6 +22,7 @@
   type ColumnPrompt = { mode: 'create' } | { mode: 'rename'; column: Column };
 
   let prompt = $state<ColumnPrompt | null>(null);
+  let paletteOpen = $state(false);
 
   onMount(async () => {
     await theme.load();
@@ -29,16 +30,29 @@
   });
 
   // Backend changes this window didn't start: a notification's Snooze or
-  // Dismiss button, or a quick capture filed from the global shortcut.
+  // Dismiss button, a quick capture filed from the global shortcut, or a
+  // preference changed in the settings window.
   $effect(() => {
     const pending = Promise.all([
       listen('reminders:changed', () => void reminders.load()),
-      listen('tasks:changed', () => void workspace.load())
+      listen('tasks:changed', () => void workspace.load()),
+      listen('settings:changed', () => {
+        void theme.load();
+        void pomodoro.load();
+        void reminders.load();
+      })
     ]);
     return () => {
       void pending.then((unlisten) => unlisten.forEach((off) => off()));
     };
   });
+
+  function onWindowKeydown(event: KeyboardEvent): void {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      paletteOpen = !paletteOpen;
+    }
+  }
 
   function openCreateColumn(): void {
     prompt = { mode: 'create' };
@@ -58,6 +72,8 @@
   }
 </script>
 
+<svelte:window onkeydown={onWindowKeydown} />
+
 <div class="app">
   <div class="shell">
     <Sidebar />
@@ -68,13 +84,15 @@
         <NotesView />
       {:else if navigation.section === 'focus'}
         <FocusView />
-      {:else if navigation.section === 'reminders'}
-        <RemindersView />
       {:else}
-        <SettingsView />
+        <RemindersView />
       {/if}
     </main>
   </div>
+
+  {#if paletteOpen}
+    <CommandPalette onclose={() => (paletteOpen = false)} />
+  {/if}
 
   <Toast />
 
@@ -114,5 +132,7 @@
     flex: 1;
     min-width: 0;
     min-height: 0;
+    overflow: hidden;
+    background: var(--bg);
   }
 </style>

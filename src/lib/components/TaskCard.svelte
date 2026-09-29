@@ -23,6 +23,7 @@
 
 <article
   class="card"
+  data-task-id={task.id}
   use:draggable={{ container: columnContainer(task.columnId), dragData: task }}
   use:droppable={{ container: cardContainer(task.id), callbacks: { onDrop } }}
 >
@@ -45,16 +46,17 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--panel);
-    box-shadow: var(--shadow-sm);
+    padding: 14px 0;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 0;
+    background: transparent;
     cursor: grab;
   }
 
   .card:hover {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    border-color: var(--accent);
+    background: var(--hover);
   }
 
   .row {
@@ -66,7 +68,7 @@
   .card-title {
     flex: 1;
     min-width: 0;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.35;
   }
 

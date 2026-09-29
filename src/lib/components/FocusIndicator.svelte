@@ -22,7 +22,7 @@
     border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--fg);
-    font-size: 12px;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
   }

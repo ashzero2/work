@@ -59,7 +59,7 @@
     gap: 6px;
     min-height: 36px;
     padding: 5px 8px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--bg);
   }
@@ -86,7 +86,7 @@
     border: none;
     background: transparent;
     color: var(--fg);
-    font-size: 12px;
+    font-size: 13px;
     outline: none;
   }
 </style>

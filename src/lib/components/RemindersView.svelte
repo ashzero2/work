@@ -88,7 +88,7 @@
               {/if}
             </span>
             {#if reminder.status === 'snoozed'}
-              <span class="chip">{statusLabel.snoozed}</span>
+              <span class="chip chip-muted">{statusLabel.snoozed}</span>
             {/if}
             {#if editing === reminder.id}
               <input type="datetime-local" bind:value={editedWhen} />
@@ -132,7 +132,7 @@
               {/if}
             </span>
             <span class="row-when">{formatMoment(reminder.triggerAt)}</span>
-            <span class="chip">{statusLabel[reminder.status]}</span>
+            <span class="chip chip-muted">{statusLabel[reminder.status]}</span>
             <button
               class="icon-btn"
               aria-label="Delete reminder"
@@ -166,9 +166,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    min-height: 56px;
-    padding: 8px 20px;
+    min-height: 68px;
+    padding: 12px 28px;
     border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, var(--panel));
   }
 
   .titles {
@@ -178,13 +179,14 @@
   }
 
   .title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .summary {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .body {
@@ -192,11 +194,11 @@
     flex: 1;
     min-height: 0;
     flex-direction: column;
-    gap: 24px;
+    gap: 32px;
     width: 100%;
-    max-width: 620px;
+    max-width: 820px;
     margin: 0 auto;
-    padding: 28px 20px;
+    padding: 40px 28px 56px;
     overflow-y: auto;
   }
 
@@ -223,7 +225,7 @@
   .banner p {
     margin: 3px 0 0;
     color: var(--muted-fg);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
   }
 
@@ -244,16 +246,17 @@
   .hint {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .row {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 9px;
+    min-height: 48px;
+    padding: 9px 12px;
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .row:hover {
@@ -291,22 +294,29 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .chip {
-    padding: 1px 7px;
-    border-radius: 999px;
-    background: var(--selection-bg);
-    color: var(--selection-fg);
-    font-size: 11px;
+  /* Four controls per row is heavier than the information in it, so the actions
+     appear on hover — and on focus, which is how a keyboard reaches them. */
+  .row .btn,
+  .row .icon-btn {
+    opacity: 0;
+    transition: opacity var(--motion-fast) var(--ease);
+  }
+
+  .row:hover .btn,
+  .row:hover .icon-btn,
+  .row:focus-within .btn,
+  .row:focus-within .icon-btn {
+    opacity: 1;
   }
 
   input[type='datetime-local'] {
     height: 28px;
     padding: 0 8px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 12px;
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
   }
 </style>

@@ -29,7 +29,7 @@
 
 {#snippet row(task: Task, indented: boolean, finished: boolean)}
   {@const progress = workspace.subtaskProgress(task.id)}
-  <div class="row" class:indented>
+  <div class="row" class:indented data-task-id={task.id}>
     <button
       class="checkbox"
       class:checked={finished}
@@ -97,9 +97,13 @@
   .list {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 28px;
     height: 100%;
-    padding: 20px;
+    width: 100%;
+    /* Capped so a task and its chips aren't 600px apart on a wide window. */
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 28px;
     overflow-y: auto;
   }
 
@@ -113,7 +117,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 10px 4px;
+    padding: 0 12px 8px;
     color: var(--muted-fg);
     font-size: 11px;
     font-weight: 600;
@@ -148,8 +152,8 @@
     width: 16px;
     height: 16px;
     padding: 0;
-    border: 1px solid var(--border);
-    border-radius: 5px;
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--accent-fg);
     cursor: pointer;
@@ -177,6 +181,7 @@
 
   .delete {
     opacity: 0;
+    transition: opacity var(--motion-fast) var(--ease);
   }
 
   .row:hover .delete,

@@ -213,3 +213,13 @@ export function setQuickCaptureShortcut(shortcut: string): Promise<ShortcutState
 export function exportTasks(format: ExportFormat): Promise<string | null> {
   return invoke<string | null>('export_tasks', { format });
 }
+
+export function showSettingsWindow(): Promise<void> {
+  return invoke<void>('show_settings_window');
+}
+
+/// Records the pane the settings window is showing; Rust mirrors it into the
+/// window title, which is where macOS convention puts it.
+export function setSettingsPane(pane: string): Promise<void> {
+  return invoke<void>('set_settings_pane', { pane });
+}

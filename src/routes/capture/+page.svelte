@@ -67,15 +67,11 @@
   input {
     height: 38px;
     padding: 0 12px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 14px;
-  }
-
-  input:focus {
-    border-color: var(--accent);
+    font-size: 13px;
   }
 
   .hint {

@@ -35,7 +35,7 @@
 
   .bar {
     height: 8px;
-    border-radius: 4px;
+    border-radius: 999px;
     background: color-mix(in srgb, var(--muted-fg) 14%, transparent);
   }
 

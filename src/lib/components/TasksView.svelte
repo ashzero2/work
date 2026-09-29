@@ -55,9 +55,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    min-height: 56px;
-    padding: 8px 20px;
+    min-height: 68px;
+    padding: 12px 28px;
     border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, var(--panel));
   }
 
   .titles {
@@ -67,13 +68,14 @@
   }
 
   .title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .summary {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .body {

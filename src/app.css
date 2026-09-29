@@ -1,64 +1,88 @@
 :root {
-  --bg: #fdfcfa;
-  --fg: #1a1815;
-  --muted-fg: #655f55;
-  --lane: #f4f1ec;
-  --panel: #ffffff;
-  --border: #d9d2c6;
-  --hover: rgba(38, 32, 24, 0.05);
-  --accent: #316a4a;
-  --accent-fg: #ffffff;
+  --bg: #f4f1eb;
+  --fg: #201f1d;
+  --muted-fg: #77736c;
+  --lane: #ebe7df;
+  --panel: #faf8f4;
+  --border: #d2ccc1;
+  --hover: rgba(46, 42, 35, 0.06);
+  --accent: #b95f43;
+  --accent-fg: #fffaf3;
   --ring-soft: color-mix(in srgb, var(--accent) 30%, transparent);
   --sidebar-bg: var(--lane);
   --selection-bg: var(--panel);
   --selection-fg: var(--fg);
-  --danger: #d92d20;
-  --warning: #b54708;
-  --info: #1570ef;
-  --shadow-sm: 0 1px 2px rgba(38, 32, 24, 0.07);
-  --shadow-md: 0 10px 28px rgba(38, 32, 24, 0.16);
-  --radius: 10px;
-  --radius-sm: 7px;
+  --danger: #b94e58;
+  --warning: #a86c20;
+  --info: #35699c;
+  --success: #4c8061;
+  --shadow-sm: none;
+  --shadow-md: 0 14px 34px rgba(35, 29, 22, 0.14);
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-lg: 8px;
+  --sidebar-width: 248px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --content-max: 1440px;
+  /* Form controls need a boundary that reads as one. The decorative --border is
+     deliberately soft (1.46:1); this clears the 3:1 non-text contrast target. */
+  --field-border: #948b7d;
+  /* Three durations and one easing, so the whole app moves at the same tempo.
+     All of them collapse under Reduce Motion — see the end of this file. */
+  --motion-fast: 120ms;
+  --motion: 150ms;
+  --motion-slow: 180ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
   --font:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #100f0d;
-    --fg: #ece8e2;
-    --muted-fg: #a8a29a;
-    --lane: #171613;
-    --panel: #1b1917;
-    --border: #3d372e;
-    --hover: rgba(255, 249, 238, 0.05);
-    --accent: #63b98a;
-    --accent-fg: #0b0d12;
+    --bg: #101112;
+    --fg: #ebe8e2;
+    --muted-fg: #92908a;
+    --lane: #17191b;
+    --panel: #1d1f21;
+    --border: #303235;
+    --hover: rgba(255, 249, 237, 0.06);
+    --accent: #d67a58;
+    --accent-fg: #17110f;
     --ring-soft: color-mix(in srgb, var(--accent) 34%, transparent);
-    --danger: #f97066;
-    --warning: #e0a458;
-    --info: #6aa9ff;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-    --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.55);
+    --danger: #ee7d83;
+    --warning: #d8a15d;
+    --info: #83add6;
+    --success: #7fb395;
+    --shadow-sm: none;
+    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
+    --field-border: #5c5d5d;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #100f0d;
-  --fg: #ece8e2;
-  --muted-fg: #a8a29a;
-  --lane: #171613;
-  --panel: #1b1917;
-  --border: #3d372e;
-  --hover: rgba(255, 249, 238, 0.05);
-  --accent: #63b98a;
-  --accent-fg: #0b0d12;
+  --bg: #101112;
+  --fg: #ebe8e2;
+  --muted-fg: #92908a;
+  --lane: #17191b;
+  --panel: #1d1f21;
+  --border: #303235;
+  --hover: rgba(255, 249, 237, 0.06);
+  --accent: #d67a58;
+  --accent-fg: #17110f;
   --ring-soft: color-mix(in srgb, var(--accent) 34%, transparent);
-  --danger: #f97066;
-  --warning: #e0a458;
-  --info: #6aa9ff;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --danger: #ee7d83;
+  --warning: #d8a15d;
+  --info: #83add6;
+  --success: #7fb395;
+  --shadow-sm: none;
+  --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
+  --field-border: #5c5d5d;
 }
 
 /* macOS theme: the sidebar is left transparent so the window's own material
@@ -66,38 +90,45 @@
    is overwritten at runtime with a contrast-safe derivation of the user's
    system accent; the values here are only the pre-paint fallback. */
 :root[data-theme='macos'] {
-  --bg: #ffffff;
-  --fg: #1c1c1e;
-  --muted-fg: #6b6b70;
-  --lane: #f2f2f2;
-  --panel: #ffffff;
-  --border: #e0e0e0;
+  --bg: #f4f1eb;
+  --fg: #201f1d;
+  --muted-fg: #77736c;
+  --lane: #ebe7df;
+  --panel: #faf8f4;
+  --border: #d2ccc1;
   --hover: rgba(0, 0, 0, 0.045);
-  --accent: #0064d2;
+  --accent: #b95f43;
   --accent-fg: #ffffff;
   --ring-soft: color-mix(in srgb, var(--accent) 30%, transparent);
   --sidebar-bg: transparent;
   --selection-bg: color-mix(in srgb, var(--accent) 18%, transparent);
   --selection-fg: var(--fg);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.2);
-  --radius-sm: 6px;
+  --shadow-sm: none;
+  --shadow-md: 0 18px 40px rgba(35, 29, 22, 0.14);
+  --radius-sm: 4px;
+  --field-border: #918b80;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme='macos'] {
-    --bg: #1e1e1e;
-    --fg: #f5f5f7;
-    --muted-fg: #a1a1a6;
-    --lane: #242426;
-    --panel: #2c2c2e;
-    --border: #3a3a3c;
+    --bg: #101112;
+    --fg: #ebe8e2;
+    --muted-fg: #92908a;
+    --lane: #17191b;
+    --panel: #1d1f21;
+    --border: #303235;
     --hover: rgba(255, 255, 255, 0.06);
-    --accent: #0a84ff;
-    --accent-fg: #0b0d12;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.6);
+    --accent: #d67a58;
+    --accent-fg: #17110f;
+    --ring-soft: color-mix(in srgb, var(--accent) 34%, transparent);
+    --danger: #ee7d83;
+    --warning: #d8a15d;
+    --info: #83add6;
+    --success: #7fb395;
+    --shadow-sm: none;
+    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
+    --field-border: #5c5d5d;
     color-scheme: dark;
   }
 }
@@ -118,6 +149,7 @@ body {
   color: var(--fg);
   font-family: var(--font);
   font-size: 14px;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -168,8 +200,8 @@ input {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
+  min-height: 32px;
+  padding: 0 11px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--panel);
@@ -236,7 +268,7 @@ input {
   align-items: center;
   gap: 4px;
   padding: 3px 7px;
-  border-radius: 999px;
+  border-radius: 3px;
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
@@ -292,6 +324,86 @@ input {
   background: var(--border);
 }
 
+/* One tempo for every interactive surface, so nothing in the app snaps while
+   something else eases. */
+.btn,
+.icon-btn,
+.menu-item,
+.chip,
+.nav-item,
+.tag,
+.row {
+  transition:
+    background var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    filter var(--motion-fast) var(--ease);
+}
+
+/* The dense variant, for reminder actions and tag rows. */
+.btn.tiny {
+  min-height: 26px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.icon-btn.tiny {
+  width: 24px;
+  height: 24px;
+}
+
+/* The settings panes share one row shape, so the layout of a preference is
+   defined once instead of five times over. */
+.setting-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.setting-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-label {
+  font-size: 13px;
+}
+
+.setting-hint {
+  color: var(--muted-fg);
+  font-size: 11px;
+}
+
+.setting-note {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.setting-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.setting-tick {
+  display: inline-flex;
+  justify-content: center;
+  width: 14px;
+  color: var(--accent);
+}
+
 /* The window is undecorated on macOS, so the page must not paint behind the
    translucent sidebar; the content column is what stays opaque. */
 :root[data-theme='macos'] body {
@@ -314,4 +426,63 @@ input {
 .drop-before::before,
 .drop-after::after {
   background-color: var(--accent);
+}
+
+/* Entrance animations only: CSS cannot animate a removal, so a close is instant.
+   Every one of these collapses under Reduce Motion, at the end of this file. */
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.view {
+  animation: view-in var(--motion) var(--ease);
+}
+
+.backdrop {
+  animation: overlay-in var(--motion) var(--ease);
+}
+
+.dialog,
+.popup {
+  animation: panel-in var(--motion-slow) var(--ease);
+}
+
+.toast {
+  animation: toast-in var(--motion-slow) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* One rule for the whole app rather than a guard per animation, so anything
+     added later is covered without anyone having to remember to opt in. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
 }

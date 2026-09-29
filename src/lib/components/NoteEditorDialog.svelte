@@ -144,11 +144,11 @@
   .title {
     height: 36px;
     padding: 0 11px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
   }
 
@@ -157,7 +157,7 @@
     min-height: 240px;
     padding: 11px;
     resize: vertical;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);

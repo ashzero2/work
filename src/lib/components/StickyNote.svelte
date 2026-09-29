@@ -68,10 +68,10 @@
     width: 224px;
     min-height: 140px;
     padding: 12px;
-    border-radius: 6px;
+    border-radius: 14px;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      0 6px 16px rgba(38, 32, 24, 0.18);
+      0 10px 24px rgba(38, 32, 24, 0.2);
     color: #2a2418;
     cursor: grab;
     touch-action: none;

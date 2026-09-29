@@ -117,6 +117,8 @@
 
   .canvas {
     position: relative;
+    margin: 28px;
+    background: var(--lane);
   }
 
   .center {

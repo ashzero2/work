@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use rusqlite::Connection;
-use tauri::{AppHandle, Emitter, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 
 use crate::domain::{NewTask, Priority};
 use crate::error::Result;
@@ -69,6 +69,32 @@ pub fn capture_task(
 #[tauri::command]
 pub fn hide_capture_window(app: AppHandle) {
     crate::quick_capture::hide(&app);
+}
+
+/// Opens the settings window: the palette's way in, beside the menu item and ⌘,.
+#[tauri::command]
+pub fn show_settings_window(app: AppHandle) {
+    crate::settings_window::show(&app);
+}
+
+/// Remembers which pane the settings window is on, and puts that name in the
+/// window title — which is where macOS convention keeps it.
+#[tauri::command]
+pub fn set_settings_pane(
+    pane: String,
+    app: AppHandle,
+    state: State<'_, Mutex<Connection>>,
+) -> Result<()> {
+    {
+        let conn = state.lock().unwrap();
+        crate::storage::settings::set(&conn, "settings.pane", &pane)?;
+    }
+
+    if let Some(window) = app.get_webview_window(crate::settings_window::LABEL) {
+        let _ = window.set_title(&pane);
+    }
+
+    Ok(())
 }
 
 /// The quick-capture shortcut as configured, along with what is actually bound —

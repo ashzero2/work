@@ -32,89 +32,94 @@
   </header>
 
   <div class="body">
-    <div class="dial">
-      <span class="clock" class:idle={!pomodoro.running}>{pomodoro.clock}</span>
-      <span class="phase">{pomodoro.running ? phaseLabel[pomodoro.kind] : 'Ready'}</span>
-      <div class="track">
-        <div
-          class="fill"
-          class:resting={pomodoro.kind !== 'work'}
-          style="width: {Math.round(pomodoro.progress * 100)}%"
-        ></div>
+    <div class="focus-stage">
+      <div class="dial">
+        <span class="eyebrow">{pomodoro.running ? 'Current session' : 'Ready when you are'}</span>
+        <span class="clock" class:idle={!pomodoro.running}>{pomodoro.clock}</span>
+        <span class="phase">{pomodoro.running ? phaseLabel[pomodoro.kind] : 'Next up'}</span>
+        <div class="track">
+          <div
+            class="fill"
+            class:resting={pomodoro.kind !== 'work'}
+            style="width: {Math.round(pomodoro.progress * 100)}%"
+          ></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        {#if pomodoro.running}
+          <button class="btn" onclick={() => void pomodoro.skip()}>
+            <SkipForward size={15} /> Skip
+          </button>
+          <button class="btn" onclick={() => void pomodoro.stop()}>
+            <Square size={15} /> Stop
+          </button>
+        {:else}
+          <button class="btn btn-primary" onclick={() => void pomodoro.start()}>
+            <Play size={15} /> Start {phaseLabel[pomodoro.nextKind].toLowerCase()}
+          </button>
+        {/if}
       </div>
     </div>
 
-    <div class="controls">
-      {#if pomodoro.running}
-        <button class="btn" onclick={() => void pomodoro.skip()}>
-          <SkipForward size={15} /> Skip
-        </button>
-        <button class="btn" onclick={() => void pomodoro.stop()}>
-          <Square size={15} /> Stop
-        </button>
-      {:else}
-        <button class="btn btn-primary" onclick={() => void pomodoro.start()}>
-          <Play size={15} /> Start {phaseLabel[pomodoro.nextKind].toLowerCase()}
-        </button>
-      {/if}
-    </div>
-
-    <div class="block">
-      <span class="block-label">Attached task</span>
-      <DropdownMenu align="start">
-        {#snippet trigger({ toggle })}
-          <button class="btn picker" onclick={toggle} disabled={pomodoro.running}>
-            {attached?.title ?? 'None'}
-            <ChevronDown size={14} />
-          </button>
-        {/snippet}
-        {#snippet content({ close })}
-          <button
-            class="menu-item"
-            onclick={() => {
-              pomodoro.setTask(null);
-              close();
-            }}
-          >
-            None
-          </button>
-          {#each openTasks as task (task.id)}
+    <div class="focus-details">
+      <div class="block">
+        <span class="block-label">Attached task</span>
+        <DropdownMenu align="start">
+          {#snippet trigger({ toggle })}
+            <button class="btn picker" onclick={toggle} disabled={pomodoro.running}>
+              {attached?.title ?? 'None'}
+              <ChevronDown size={14} />
+            </button>
+          {/snippet}
+          {#snippet content({ close })}
             <button
               class="menu-item"
               onclick={() => {
-                pomodoro.setTask(task.id);
+                pomodoro.setTask(null);
                 close();
               }}
             >
-              {task.title}
+              None
             </button>
-          {/each}
-        {/snippet}
-      </DropdownMenu>
-      {#if pomodoro.running}
-        <p class="hint">A running session keeps the task it started with.</p>
+            {#each openTasks as task (task.id)}
+              <button
+                class="menu-item"
+                onclick={() => {
+                  pomodoro.setTask(task.id);
+                  close();
+                }}
+              >
+                {task.title}
+              </button>
+            {/each}
+          {/snippet}
+        </DropdownMenu>
+        {#if pomodoro.running}
+          <p class="hint">A running session keeps the task it started with.</p>
+        {/if}
+      </div>
+
+      <div class="block">
+        <span class="block-label">Durations, in minutes</span>
+        <PomodoroDurations />
+      </div>
+
+      {#if pomodoro.recent.length > 0}
+        <div class="block">
+          <span class="block-label">Recent sessions</span>
+          <div class="recent">
+            {#each pomodoro.recent as session (session.id)}
+              <div class="row">
+                <span class="row-phase">{phaseLabel[session.kind]}</span>
+                <span class="row-outcome">{session.completed ? 'done' : 'stopped'}</span>
+                <span class="row-when">{when(session.startedAt)}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
       {/if}
     </div>
-
-    <div class="block">
-      <span class="block-label">Durations, in minutes</span>
-      <PomodoroDurations />
-    </div>
-
-    {#if pomodoro.recent.length > 0}
-      <div class="block">
-        <span class="block-label">Recent sessions</span>
-        <div class="recent">
-          {#each pomodoro.recent as session (session.id)}
-            <div class="row">
-              <span class="row-phase">{phaseLabel[session.kind]}</span>
-              <span class="row-outcome">{session.completed ? 'done' : 'stopped'}</span>
-              <span class="row-when">{when(session.startedAt)}</span>
-            </div>
-          {/each}
-        </div>
-      </div>
-    {/if}
   </div>
 </section>
 
@@ -133,9 +138,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    min-height: 56px;
-    padding: 8px 20px;
+    min-height: 68px;
+    padding: 12px 28px;
     border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, var(--panel));
   }
 
   .titles {
@@ -145,40 +151,60 @@
   }
 
   .title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .summary {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .body {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(320px, 1.1fr) minmax(340px, 0.9fr);
+    align-items: center;
     flex: 1;
     min-height: 0;
-    flex-direction: column;
-    gap: 24px;
+    gap: clamp(28px, 6vw, 88px);
     width: 100%;
-    max-width: 420px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 32px 20px;
+    padding: 48px clamp(28px, 5vw, 72px);
     overflow-y: auto;
+  }
+
+  .focus-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    min-width: 0;
   }
 
   .dial {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    width: min(100%, 460px);
+    text-align: center;
+  }
+
+  .eyebrow {
+    color: var(--muted-fg);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
 
   .clock {
-    font-size: 44px;
-    font-weight: 600;
+    font-size: clamp(64px, 8vw, 94px);
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.06em;
     line-height: 1.1;
   }
 
@@ -188,15 +214,17 @@
 
   .phase {
     color: var(--muted-fg);
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .track {
     width: 100%;
-    height: 4px;
-    margin-top: 10px;
+    height: 6px;
+    /* Far enough below the clock that it reads as progress, not as an underline
+       under the readout. */
+    margin-top: 22px;
     border-radius: 999px;
-    background: var(--lane);
+    background: color-mix(in srgb, var(--muted-fg) 22%, transparent);
     overflow: hidden;
   }
 
@@ -204,6 +232,7 @@
     height: 100%;
     border-radius: 999px;
     background: var(--accent);
+    transition: width var(--motion-fast) linear;
   }
 
   .fill.resting {
@@ -214,6 +243,18 @@
     display: flex;
     justify-content: center;
     gap: 8px;
+  }
+
+  .focus-details {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+    padding: 4px 0 4px 28px;
+    border-left: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .block {
@@ -251,9 +292,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 9px;
+    padding: 8px 9px;
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .row:hover {
@@ -272,5 +313,20 @@
   .row-when {
     color: var(--muted-fg);
     font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 1000px) {
+    .body {
+      grid-template-columns: 1fr;
+      align-content: start;
+      gap: 28px;
+      padding: 32px 20px 40px;
+    }
+
+    .focus-details {
+      padding: 24px 0 0;
+      border-top: 1px solid var(--border);
+      border-left: 0;
+    }
   }
 </style>

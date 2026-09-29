@@ -48,18 +48,19 @@
     flex-shrink: 0;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
+    gap: 10px;
+    padding: 14px 28px;
     border-bottom: 1px solid var(--border);
+    background: var(--bg);
   }
 
   .add-input {
     flex: 1 1 200px;
     min-width: 0;
-    height: 32px;
-    padding: 0 11px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--field-border);
+    border-radius: 9px;
     background: var(--panel);
     color: var(--fg);
     font-size: 13px;

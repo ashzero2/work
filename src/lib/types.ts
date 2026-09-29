@@ -4,7 +4,7 @@ export type RepeatRule = 'daily' | 'weekly' | 'monthly';
 
 export type ViewMode = 'board' | 'list';
 
-export type Section = 'tasks' | 'notes' | 'focus' | 'reminders' | 'settings';
+export type Section = 'tasks' | 'notes' | 'focus' | 'reminders';
 
 export type ExportFormat = 'json' | 'csv';
 

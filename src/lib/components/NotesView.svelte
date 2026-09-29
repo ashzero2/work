@@ -54,9 +54,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    min-height: 56px;
-    padding: 8px 20px;
+    min-height: 68px;
+    padding: 12px 28px;
     border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, var(--panel));
   }
 
   .titles {
@@ -67,20 +68,21 @@
   }
 
   .title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .summary {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .controls {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
   .search {
@@ -89,9 +91,9 @@
     min-width: 150px;
     align-items: center;
     gap: 6px;
-    height: 32px;
+    height: 36px;
     padding: 0 10px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--muted-fg);

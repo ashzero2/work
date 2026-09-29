@@ -24,7 +24,27 @@
     for (const list of grouped.values()) list.sort((a, b) => a.position - b.position);
     return grouped;
   });
+
+  // A column cut off at the right edge reads as a rendering bug unless something
+  // says the board scrolls sideways — so the fade appears only while there is
+  // more to see, and disappears at the end.
+  let board = $state<HTMLDivElement | null>(null);
+  let moreRight = $state(false);
+
+  function measure(): void {
+    if (board === null) return;
+    moreRight = board.scrollWidth - board.clientWidth - board.scrollLeft > 4;
+  }
+
+  $effect(() => {
+    // Re-measure when the columns or tasks change, not only on scroll.
+    void workspace.columns.length;
+    void workspace.tasks.length;
+    measure();
+  });
 </script>
+
+<svelte:window onresize={measure} />
 
 {#if workspace.loading}
   <LoadingState label="Loading tasks…" />
@@ -41,21 +61,41 @@
     </EmptyState>
   </div>
 {:else}
-  <div class="board">
-    {#each workspace.columns as column (column.id)}
-      <Column {column} tasks={openByColumn.get(column.id) ?? []} {onrename} />
-    {/each}
+  <div class="board-wrap">
+    <div class="board" bind:this={board} onscroll={measure}>
+      {#each workspace.columns as column (column.id)}
+        <Column {column} tasks={openByColumn.get(column.id) ?? []} {onrename} />
+      {/each}
+    </div>
+    {#if moreRight}
+      <div class="scroll-fade" aria-hidden="true"></div>
+    {/if}
   </div>
 {/if}
 
 <style>
+  .board-wrap {
+    position: relative;
+    height: 100%;
+  }
+
   .board {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 0;
     height: 100%;
-    padding: 20px;
+    padding: 28px 32px;
     overflow: auto;
+  }
+
+  .scroll-fade {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--bg));
   }
 
   .center {

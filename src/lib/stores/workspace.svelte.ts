@@ -18,6 +18,10 @@ class WorkspaceStore {
   async load(): Promise<void> {
     try {
       await this.refresh();
+      // The board/list choice is a preference like any other, so it survives a
+      // restart rather than resetting every launch.
+      const stored = await api.getSetting('viewMode');
+      if (stored === 'board' || stored === 'list') this.viewMode = stored;
     } finally {
       this.loading = false;
     }
@@ -47,8 +51,13 @@ class WorkspaceStore {
     return this.tasks.filter((task) => task.completedAt !== null).length;
   }
 
-  setViewMode(mode: ViewMode): void {
+  async setViewMode(mode: ViewMode): Promise<void> {
     this.viewMode = mode;
+    try {
+      await api.setSetting('viewMode', mode);
+    } catch (error) {
+      toast.show(errorMessage(error));
+    }
   }
 
   setTargetColumn(id: number): void {

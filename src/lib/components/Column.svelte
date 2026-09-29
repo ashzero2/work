@@ -83,20 +83,23 @@
   .lane {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    width: 300px;
+    gap: 0;
+    width: clamp(280px, 30vw, 380px);
     max-height: 100%;
     flex-shrink: 0;
-    padding: 10px;
-    border-radius: var(--radius);
-    background: var(--lane);
+    padding: 0 20px;
+    border-left: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
   }
 
   .lane-head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0 2px;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--border);
   }
 
   .lane-name {
@@ -104,16 +107,17 @@
     min-width: 0;
     overflow: hidden;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
   .lane-count {
     flex-shrink: 0;
-    padding: 2px 7px;
-    border-radius: 999px;
-    background: var(--panel);
+    min-width: 20px;
+    padding: 2px 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--muted-fg);
     font-size: 11px;
   }
@@ -126,7 +130,7 @@
   .lane-cards {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
     min-height: 44px;
     overflow-y: auto;
   }
@@ -135,7 +139,8 @@
     display: flex;
     justify-content: center;
     padding: 18px 0;
+    border-bottom: 1px dashed var(--border);
     color: var(--muted-fg);
-    font-size: 12px;
+    font-size: 13px;
   }
 </style>

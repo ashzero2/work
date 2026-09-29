@@ -33,19 +33,21 @@
   .empty {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-start;
+    gap: 8px;
     max-width: 340px;
-    text-align: center;
+    padding: 2px 0 2px 18px;
+    border-left: 2px solid var(--accent);
+    text-align: left;
   }
 
   .glyph {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
     color: var(--muted-fg);
-    opacity: 0.85;
+    opacity: 0.65;
   }
 
   .title {
@@ -61,6 +63,6 @@
   }
 
   .action {
-    margin-top: 10px;
+    margin-top: 8px;
   }
 </style>

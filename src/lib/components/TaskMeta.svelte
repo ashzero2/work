@@ -12,9 +12,11 @@
 
   let { task, subtasksDone = 0, subtasksTotal = 0 }: Props = $props();
 
+  // Low is the quiet one: the least urgent chip should not be the only blue
+  // thing in the row.
   const priorityTone: Record<Priority, ChipTone | null> = {
     none: null,
-    low: 'info',
+    low: 'muted',
     medium: 'warning',
     high: 'danger'
   };

@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use chrono::Duration;
 use rusqlite::Connection;
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 
 use crate::domain::{PomodoroSession, ReminderKind, SessionKind};
 use crate::error::Result;
@@ -82,7 +82,16 @@ pub fn get_pomodoro_settings(state: State<'_, Mutex<Connection>>) -> Result<Pomo
 #[tauri::command]
 pub fn set_pomodoro_settings(
     settings: PomodoroSettings,
+    app: AppHandle,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<PomodoroSettings> {
-    pomodoro::save_settings(&state.lock().unwrap(), &settings)
+    let saved = {
+        let conn = state.lock().unwrap();
+        pomodoro::save_settings(&conn, &settings)?
+    };
+
+    // The durations are editable from two windows, so the other one has to hear
+    // about it.
+    let _ = app.emit(crate::SETTINGS_CHANGED, ());
+    Ok(saved)
 }

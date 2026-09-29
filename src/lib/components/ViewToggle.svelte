@@ -29,8 +29,8 @@
   .toggle {
     display: inline-flex;
     gap: 2px;
-    padding: 2px;
-    border: 1px solid var(--border);
+    padding: 3px;
+    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
     border-radius: var(--radius-sm);
     background: var(--lane);
   }
@@ -39,13 +39,13 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 26px;
+    height: 30px;
     padding: 0 10px;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--muted-fg);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
   }
@@ -55,7 +55,7 @@
   }
 
   .segment.active {
-    background: var(--panel);
+    background: color-mix(in srgb, var(--accent) 14%, var(--panel));
     color: var(--fg);
     box-shadow: var(--shadow-sm);
   }

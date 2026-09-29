@@ -2,9 +2,11 @@ mod commands;
 pub mod domain;
 pub mod error;
 mod export;
+mod menu;
 mod platform;
 mod quick_capture;
 mod reminder_sync;
+mod settings_window;
 pub mod storage;
 mod tray;
 
@@ -21,6 +23,12 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .menu(menu::build)
+        .on_menu_event(|app, event| {
+            if event.id().as_ref() == menu::SETTINGS_ID {
+                settings_window::show(app);
+            }
+        })
         .setup(|app| {
             let conn = storage::db::open()?;
             storage::columns::ensure_default(&conn)?;
@@ -45,6 +53,9 @@ pub fn run() {
             }
             if let Err(error) = quick_capture::install(app) {
                 eprintln!("quick capture unavailable: {error}");
+            }
+            if let Err(error) = settings_window::install(app) {
+                eprintln!("settings window unavailable: {error}");
             }
             tray::spawn_countdown(app.handle().clone());
 
@@ -117,6 +128,8 @@ pub fn run() {
             commands::system::set_traffic_lights_visible,
             commands::system::capture_task,
             commands::system::hide_capture_window,
+            commands::system::show_settings_window,
+            commands::system::set_settings_pane,
             commands::system::get_quick_capture_shortcut,
             commands::system::set_quick_capture_shortcut,
             commands::export::export_tasks
@@ -194,3 +207,8 @@ pub const REMINDERS_CHANGED: &str = "reminders:changed";
 /// Emitted after a quick capture stores a task, so the window's board is not
 /// left showing the state from before it.
 pub const TASKS_CHANGED: &str = "tasks:changed";
+
+/// Emitted whenever a preference is written, from whichever window wrote it. The
+/// settings window and the main window are separate documents, so this is the
+/// only way either learns that the other changed something.
+pub const SETTINGS_CHANGED: &str = "settings:changed";

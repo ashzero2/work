@@ -72,7 +72,7 @@
   input {
     height: 32px;
     padding: 0 9px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--fg);
