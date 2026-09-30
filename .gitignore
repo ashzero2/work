@@ -17,6 +17,7 @@ vite.config.ts.timestamp-*
 # Local tooling state
 .claude/
 .commandcode/
+.impeccable/
 
 # OS
 .DS_Store
