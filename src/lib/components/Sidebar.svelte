@@ -1,6 +1,8 @@
 <script lang="ts">
   import {
     Bell,
+    Command,
+    Plus,
     ListTodo,
     PanelLeft,
     Settings2,
@@ -10,11 +12,13 @@
     Trash2
   } from '@lucide/svelte';
 
-  import { setTrafficLightsVisible, showSettingsWindow } from '$lib/api';
+  import { setTrafficLightsVisible, showSettingsWindow, showCaptureWindow } from '$lib/api';
   import { navigation } from '$lib/stores/navigation.svelte';
   import { notes } from '$lib/stores/notes.svelte';
   import { theme } from '$lib/stores/theme.svelte';
   import FocusIndicator from './FocusIndicator.svelte';
+
+  let { oncommand }: { oncommand: () => void } = $props();
 
   const collapsed = $derived(navigation.sidebarCollapsed);
   const chromeless = $derived(theme.state.macos);
@@ -138,6 +142,7 @@
   {/if}
 
   <div class="foot">
+    {#if !collapsed}<div class="section-label">Preferences</div>{/if}
     {#if !collapsed}
       <FocusIndicator />
     {/if}
@@ -151,6 +156,8 @@
       <Settings2 size={collapsed ? 17 : 15} />
       {#if !collapsed}<span>Settings</span>{/if}
     </button>
+    <button class="utility" class:collapsed aria-label="Quick capture" onclick={() => void showCaptureWindow()}><Plus size={navIcon} />{#if !collapsed}<span>Quick capture</span>{/if}</button>
+    <button class="utility" class:collapsed aria-label="Command menu" onclick={oncommand}><Command size={navIcon} />{#if !collapsed}<span>Command menu</span>{/if}</button>
   </div>
 </aside>
 

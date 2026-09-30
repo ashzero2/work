@@ -23,6 +23,7 @@
 
 <article
   class="card"
+  class:completed={task.completedAt !== null}
   data-task-id={task.id}
   use:draggable={{ container: columnContainer(task.columnId), dragData: task }}
   use:droppable={{ container: cardContainer(task.id), callbacks: { onDrop } }}
@@ -30,7 +31,13 @@
   <div class="row">
     <span class="card-title">{task.title}</span>
     <div class="actions">
-      <button class="icon-btn" title="Complete" aria-label="Complete" onclick={() => oncomplete(task.id)}>
+      <button
+        class="icon-btn"
+        title={task.completedAt ? (task.repeatRule ? 'Repeating tasks can’t be reopened' : 'Reopen task') : 'Complete task'}
+        aria-label={task.completedAt ? `Reopen ${task.title}` : `Complete ${task.title}`}
+        disabled={task.completedAt !== null && task.repeatRule !== null}
+        onclick={() => oncomplete(task.id)}
+      >
         <CircleCheck size={15} />
       </button>
       <button class="icon-btn" title="Delete" aria-label="Delete" onclick={() => ondelete(task.id)}>
@@ -38,19 +45,21 @@
       </button>
     </div>
   </div>
+  {#if task.description}<p class="description">{task.description}</p>{/if}
   <TaskMeta {task} {subtasksDone} {subtasksTotal} />
 </article>
 
 <style>
+  .completed .card-title { text-decoration: line-through; color: var(--muted-fg); }
+  .description { margin: 0; font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .card {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 14px 0;
-    border: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-    border-radius: 0;
-    background: transparent;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
     cursor: grab;
   }
 

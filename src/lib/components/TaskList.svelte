@@ -1,199 +1,39 @@
 <script lang="ts">
   import { Check, Trash2 } from '@lucide/svelte';
-
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Task } from '$lib/types';
-  import EmptyState from './EmptyState.svelte';
   import LoadingState from './LoadingState.svelte';
-  import TaskMeta from './TaskMeta.svelte';
-
-  const byPosition = (a: Task, b: Task): number => a.position - b.position;
-
-  function openTopLevel(columnId: number): Task[] {
-    return workspace.tasks
-      .filter((task) => task.columnId === columnId && task.completedAt === null && task.parentTaskId === null)
-      .sort(byPosition);
-  }
-
-  function openChildren(parentId: number): Task[] {
-    return workspace.tasks
-      .filter((task) => task.parentTaskId === parentId && task.completedAt === null)
-      .sort(byPosition);
-  }
-
-  const completed = $derived(
-    workspace.tasks.filter((task) => task.completedAt !== null).sort(byPosition)
-  );
-  const hasOpen = $derived(workspace.columns.some((column) => openTopLevel(column.id).length > 0));
+  let { tasks }: { tasks: Task[] } = $props();
+  const ordered = $derived.by(() => {
+    const columnOrder = new Map(workspace.columns.map((column, index) => [column.id, index]));
+    const byPosition = (a: Task, b: Task): number =>
+      (columnOrder.get(a.columnId) ?? 0) - (columnOrder.get(b.columnId) ?? 0) || a.position - b.position;
+    const parents = tasks.filter(task => task.parentTaskId === null).sort(byPosition);
+    const children = tasks.filter(task => task.parentTaskId !== null).sort(byPosition);
+    const parentIds = new Set(parents.map(task => task.id));
+    return parents.flatMap(parent => [parent, ...children.filter(child => child.parentTaskId === parent.id)])
+      .concat(children.filter(child => !parentIds.has(child.parentTaskId!)));
+  });
 </script>
-
-{#snippet row(task: Task, indented: boolean, finished: boolean)}
-  {@const progress = workspace.subtaskProgress(task.id)}
-  <div class="row" class:indented data-task-id={task.id}>
-    <button
-      class="checkbox"
-      class:checked={finished}
-      aria-label={finished ? 'Completed' : 'Complete task'}
-      disabled={finished}
-      onclick={() => void workspace.completeTask(task.id)}
-    >
-      {#if finished}<Check size={12} />{/if}
-    </button>
-    <span class="title" class:done={finished}>{task.title}</span>
-    {#if !finished}
-      <TaskMeta {task} subtasksDone={progress.done} subtasksTotal={progress.total} />
-    {/if}
-    <button class="icon-btn delete" aria-label="Delete task" onclick={() => void workspace.deleteTask(task.id)}>
-      <Trash2 size={15} />
-    </button>
-  </div>
-{/snippet}
-
 <div class="list">
-  {#each workspace.columns as column (column.id)}
-    {@const open = openTopLevel(column.id)}
-    {#if open.length > 0}
-      <section class="group">
-        <header class="group-head">
-          <span class="group-name">{column.name.toUpperCase()}</span>
-          <span class="group-count">{open.length}</span>
-        </header>
-        {#each open as task (task.id)}
-          {@render row(task, false, false)}
-          {#each openChildren(task.id) as child (child.id)}
-            {@render row(child, true, false)}
-          {/each}
-        {/each}
-      </section>
-    {/if}
-  {/each}
-
-  {#if completed.length > 0}
-    <section class="group">
-      <header class="group-head">
-        <span class="group-name">COMPLETED</span>
-        <span class="group-count">{completed.length}</span>
-      </header>
-      {#each completed as task (task.id)}
-        {@render row(task, false, true)}
-      {/each}
-    </section>
-  {/if}
-
-  {#if workspace.loading}
-    <LoadingState label="Loading tasks…" />
-  {:else if !hasOpen && completed.length === 0}
-    <div class="center">
-      <EmptyState
-        variant="list"
-        title="Nothing here yet"
-        description="Add a task above and it will show up in this list."
-      />
-    </div>
-  {/if}
+  <table>
+    <thead><tr><th aria-label="Completion"></th><th>Task</th><th>Column</th><th>Priority</th><th>Due</th><th aria-label="Actions"></th></tr></thead>
+    <tbody>{#each ordered as task (task.id)}<tr class:done={task.completedAt !== null} data-task-id={task.id}>
+      <td><button class="checkbox" disabled={task.completedAt !== null && task.repeatRule !== null} title={task.completedAt ? (task.repeatRule ? 'Repeating tasks can’t be reopened' : 'Reopen task') : 'Complete task'} aria-label={task.completedAt ? `Reopen ${task.title}` : `Complete ${task.title}`} onclick={() => void workspace.toggleTaskCompletion(task.id)}>{#if task.completedAt}<Check size={13} />{/if}</button></td>
+      <td class="task-title" class:child={task.parentTaskId !== null}>{task.title}</td>
+      <td>{workspace.columns.find(column => column.id === task.columnId)?.name ?? '—'}</td>
+      <td class="priority">{task.priority === 'none' ? '—' : task.priority}</td>
+      <td>{task.dueAt ? new Date(task.dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
+      <td><button class="icon-btn" aria-label={`Delete ${task.title}`} onclick={() => void workspace.deleteTask(task.id)}><Trash2 size={14} /></button></td>
+    </tr>{/each}</tbody>
+  </table>
+  {#if workspace.loading}<LoadingState label="Loading tasks…" />{:else if ordered.length === 0}<p class="empty">No tasks match these filters.</p>{/if}
 </div>
-
 <style>
-  .list {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    height: 100%;
-    width: 100%;
-    /* Capped so a task and its chips aren't 600px apart on a wide window. */
-    max-width: 920px;
-    margin: 0 auto;
-    padding: 28px;
-    overflow-y: auto;
-  }
-
-  .group {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .group-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 12px 8px;
-    color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-  }
-
-  .group-count {
-    font-weight: 500;
-  }
-
-  .row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 10px;
-    border-radius: var(--radius-sm);
-  }
-
-  .row:hover {
-    background: var(--lane);
-  }
-
-  .row.indented {
-    margin-left: 26px;
-  }
-
-  .checkbox {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    border: 1px solid var(--field-border);
-    border-radius: var(--radius-sm);
-    background: var(--panel);
-    color: var(--accent-fg);
-    cursor: pointer;
-  }
-
-  .checkbox:hover {
-    border-color: var(--accent);
-  }
-
-  .checkbox.checked {
-    border-color: var(--accent);
-    background: var(--accent);
-  }
-
-  .title {
-    flex: 1;
-    min-width: 0;
-    font-size: 13px;
-  }
-
-  .title.done {
-    color: var(--muted-fg);
-    text-decoration: line-through;
-  }
-
-  .delete {
-    opacity: 0;
-    transition: opacity var(--motion-fast) var(--ease);
-  }
-
-  .row:hover .delete,
-  .row:focus-within .delete {
-    opacity: 1;
-  }
-
-  .center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-height: 240px;
-  }
+  .list { height: 100%; overflow: auto; } table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+  th { position: sticky; top: 0; background: var(--lane); color: var(--muted-fg); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+  th, td { padding: 11px 8px; border-bottom: 1px solid var(--border); } td { background: var(--panel); } tr:hover td { background: var(--hover); }
+  .task-title { width: 45%; font-weight: 600; } .task-title.child { padding-left: 28px; } .priority { text-transform: capitalize; } .done .task-title { text-decoration: line-through; color: var(--muted-fg); }
+  .checkbox { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--field-border); border-radius: 4px; background: var(--panel); color: var(--accent); }
+  .empty { padding: 30px; text-align: center; color: var(--muted-fg); }
 </style>

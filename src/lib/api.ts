@@ -29,6 +29,10 @@ export function completeTask(id: number): Promise<Task | null> {
   return invoke<Task | null>('complete_task', { id });
 }
 
+export function reopenTask(id: number): Promise<void> {
+  return invoke<void>('reopen_task', { id });
+}
+
 export function deleteTask(id: number): Promise<void> {
   return invoke<void>('delete_task', { id });
 }
@@ -202,6 +206,10 @@ export function hideCaptureWindow(): Promise<void> {
   return invoke<void>('hide_capture_window');
 }
 
+export function showCaptureWindow(): Promise<void> {
+  return invoke<void>('show_capture_window');
+}
+
 export function getQuickCaptureShortcut(): Promise<ShortcutState> {
   return invoke<ShortcutState>('get_quick_capture_shortcut');
 }
@@ -214,8 +222,8 @@ export function exportTasks(format: ExportFormat): Promise<string | null> {
   return invoke<string | null>('export_tasks', { format });
 }
 
-export function showSettingsWindow(): Promise<void> {
-  return invoke<void>('show_settings_window');
+export function showSettingsWindow(pane?: 'appearance' | 'notifications' | 'focus' | 'shortcuts' | 'data'): Promise<void> {
+  return invoke<void>('show_settings_window', { pane: pane ?? null });
 }
 
 /// Records the pane the settings window is showing; Rust mirrors it into the

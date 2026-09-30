@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { BellOff, Clock, Plus, Settings, Trash2 } from '@lucide/svelte';
+  import { BellOff, Clock, Ellipsis, Plus, Settings, Trash2 } from '@lucide/svelte';
 
+  import { showSettingsWindow } from '$lib/api';
   import { formatMoment, fromDatetimeLocal, toDatetimeLocal } from '$lib/format';
   import { kindLabel, reminders, statusLabel } from '$lib/stores/reminders.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Reminder } from '$lib/types';
   import NotificationKindToggles from './NotificationKindToggles.svelte';
   import ReminderDialog from './ReminderDialog.svelte';
+  import DropdownMenu from './DropdownMenu.svelte';
 
   let creating = $state(false);
   let editing = $state<number | null>(null);
@@ -26,24 +28,24 @@
   }
 </script>
 
-<section class="view">
-  <header class="view-head" data-tauri-drag-region>
+<section class="workspace-view">
+  <header class="workspace-head" data-tauri-drag-region>
     <div class="titles">
-      <span class="title">Reminders</span>
-      <span class="summary">
+      <h1>Reminders</h1>
+      <p>
         {#if reminders.outstanding.length === 0}
           Nothing scheduled
         {:else}
           {reminders.outstanding.length} upcoming
         {/if}
-      </span>
+      </p>
     </div>
     <button class="btn btn-primary" onclick={() => (creating = true)}>
       <Plus size={15} /> New reminder
     </button>
   </header>
 
-  <div class="body">
+  <div class="workspace-body body">
     {#if !reminders.available}
       <div class="banner">
         <BellOff size={16} />
@@ -66,12 +68,11 @@
           <Settings size={14} /> Settings
         </button>
       </div>
+    {:else}
+      <div class="banner"><div class="banner-text"><strong>Notifications on</strong><p>Reminders appear through the operating system.</p></div><button class="btn" onclick={() => void showSettingsWindow('notifications')}>Notification settings</button></div>
     {/if}
 
-    <div class="block">
-      <span class="block-label">Notify me about</span>
-      <NotificationKindToggles />
-    </div>
+    <details><summary>Notify me about</summary><NotificationKindToggles /></details>
 
     <div class="block">
       <span class="block-label">Scheduled</span>
@@ -99,21 +100,15 @@
             {:else}
               <span class="row-when">{formatMoment(reminder.triggerAt)}</span>
               <button class="btn tiny" onclick={() => startEditing(reminder)}>Change</button>
-              <button class="btn tiny" onclick={() => void reminders.snooze(reminder.id)}>
-                Snooze
-              </button>
-              <button class="btn tiny" onclick={() => void reminders.dismiss(reminder.id)}>
-                Dismiss
-              </button>
             {/if}
-            <button
-              class="icon-btn"
-              aria-label="Delete reminder"
-              title="Delete reminder"
-              onclick={() => void reminders.remove(reminder.id)}
-            >
-              <Trash2 size={13} />
-            </button>
+            <DropdownMenu align="end">
+              {#snippet trigger({ toggle })}<button class="icon-btn" aria-label="Reminder actions" onclick={toggle}><Ellipsis size={15} /></button>{/snippet}
+              {#snippet content({ close })}
+                <button class="menu-item" onclick={() => { close(); void reminders.snooze(reminder.id); }}>Snooze</button>
+                <button class="menu-item" onclick={() => { close(); void reminders.dismiss(reminder.id); }}>Dismiss</button>
+                <button class="menu-item danger" onclick={() => { close(); void reminders.remove(reminder.id); }}>Delete</button>
+              {/snippet}
+            </DropdownMenu>
           </div>
         {/each}
       {/if}
@@ -153,55 +148,8 @@
 {/if}
 
 <style>
-  .view {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-  }
-
-  .view-head {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 68px;
-    padding: 12px 28px;
-    border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 92%, var(--panel));
-  }
-
-  .titles {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .title {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-
-  .summary {
-    color: var(--muted-fg);
-    font-size: 12px;
-  }
-
-  .body {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    flex-direction: column;
-    gap: 32px;
-    width: 100%;
-    max-width: 820px;
-    margin: 0 auto;
-    padding: 40px 28px 56px;
-    overflow-y: auto;
-  }
-
+  .body { display: flex; flex-direction: column; gap: 18px; }
+  details { font-size: 13px; } summary { cursor: pointer; margin-bottom: 8px; color: var(--muted-fg); }
   .banner {
     display: flex;
     align-items: flex-start;
@@ -255,7 +203,8 @@
     gap: 8px;
     min-height: 48px;
     padding: 9px 12px;
-    border-radius: var(--radius-sm);
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
     font-size: 13px;
   }
 
@@ -294,11 +243,9 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Four controls per row is heavier than the information in it, so the actions
-     appear on hover — and on focus, which is how a keyboard reaches them. */
   .row .btn,
   .row .icon-btn {
-    opacity: 0;
+    opacity: 1;
     transition: opacity var(--motion-fast) var(--ease);
   }
 

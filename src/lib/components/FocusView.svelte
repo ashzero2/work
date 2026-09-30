@@ -6,6 +6,8 @@
   import DropdownMenu from './DropdownMenu.svelte';
   import PomodoroDurations from './PomodoroDurations.svelte';
 
+  let durationsOpen = $state(false);
+
   const openTasks = $derived(
     workspace.tasks.filter((task) => task.completedAt === null && task.parentTaskId === null)
   );
@@ -16,24 +18,26 @@
     new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 </script>
 
-<section class="view">
-  <header class="view-head" data-tauri-drag-region>
+<section class="workspace-view">
+  <header class="workspace-head" data-tauri-drag-region>
     <div class="titles">
-      <span class="title">Focus</span>
-      <span class="summary">
+      <h1>Focus</h1>
+      <p>
         {#if pomodoro.running}
           {phaseLabel[pomodoro.kind]} · session {cycleStep} of
           {pomodoro.settings.sessionsPerLongBreak}
         {:else}
           Next up: {phaseLabel[pomodoro.nextKind].toLowerCase()}
         {/if}
-      </span>
+      </p>
     </div>
+    <button class="btn" onclick={() => durationsOpen = !durationsOpen}>Adjust durations</button>
   </header>
 
-  <div class="body">
+  <div class="workspace-body body">
     <div class="focus-stage">
       <div class="dial">
+        <strong>{attached?.title ?? "Choose a task or focus freely"}</strong>
         <span class="eyebrow">{pomodoro.running ? 'Current session' : 'Ready when you are'}</span>
         <span class="clock" class:idle={!pomodoro.running}>{pomodoro.clock}</span>
         <span class="phase">{pomodoro.running ? phaseLabel[pomodoro.kind] : 'Next up'}</span>
@@ -48,11 +52,14 @@
 
       <div class="controls">
         {#if pomodoro.running}
+          <button class="btn" onclick={() => void pomodoro.stop()}>
+            <Square size={15} /> Stop
+          </button>
           <button class="btn" onclick={() => void pomodoro.skip()}>
             <SkipForward size={15} /> Skip
           </button>
-          <button class="btn" onclick={() => void pomodoro.stop()}>
-            <Square size={15} /> Stop
+          <button class="btn btn-primary" onclick={() => void pomodoro.finish()}>
+            Finish
           </button>
         {:else}
           <button class="btn btn-primary" onclick={() => void pomodoro.start()}>
@@ -63,6 +70,7 @@
     </div>
 
     <div class="focus-details">
+      <strong>Session setup</strong>
       <div class="block">
         <span class="block-label">Attached task</span>
         <DropdownMenu align="start">
@@ -100,10 +108,9 @@
         {/if}
       </div>
 
-      <div class="block">
-        <span class="block-label">Durations, in minutes</span>
-        <PomodoroDurations />
-      </div>
+      <div class="setup-row"><span>Next session</span><strong>{phaseLabel[pomodoro.nextKind]}</strong></div>
+      <div class="setup-row"><span>Cycle</span><strong>{cycleStep} of {pomodoro.settings.sessionsPerLongBreak}</strong></div>
+      {#if durationsOpen}<div class="block"><span class="block-label">Durations, in minutes</span><PomodoroDurations /></div>{/if}
 
       {#if pomodoro.recent.length > 0}
         <div class="block">
@@ -124,65 +131,9 @@
 </section>
 
 <style>
-  .view {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-  }
-
-  .view-head {
-    display: flex;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 68px;
-    padding: 12px 28px;
-    border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 92%, var(--panel));
-  }
-
-  .titles {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .title {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-
-  .summary {
-    color: var(--muted-fg);
-    font-size: 12px;
-  }
-
-  .body {
-    display: grid;
-    grid-template-columns: minmax(320px, 1.1fr) minmax(340px, 0.9fr);
-    align-items: center;
-    flex: 1;
-    min-height: 0;
-    gap: clamp(28px, 6vw, 88px);
-    width: 100%;
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 48px clamp(28px, 5vw, 72px);
-    overflow-y: auto;
-  }
-
-  .focus-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-    min-width: 0;
-  }
-
+  .body { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(250px, .7fr); align-items: start; gap: 18px; }
+  .focus-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 335px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
+  .setup-row { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
   .dial {
     display: flex;
     flex-direction: column;
@@ -201,7 +152,8 @@
   }
 
   .clock {
-    font-size: clamp(64px, 8vw, 94px);
+    color: var(--accent);
+    font-size: clamp(54px, 8vw, 88px);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.06em;
@@ -245,18 +197,7 @@
     gap: 8px;
   }
 
-  .focus-details {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    min-width: 0;
-    padding: 4px 0 4px 28px;
-    border-left: 1px solid var(--border);
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-  }
-
+  .focus-details { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--lane); }
   .block {
     display: flex;
     flex-direction: column;
@@ -315,7 +256,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  @media (max-width: 1000px) {
+  @media (max-width: 800px) {
     .body {
       grid-template-columns: 1fr;
       align-content: start;
@@ -323,10 +264,5 @@
       padding: 32px 20px 40px;
     }
 
-    .focus-details {
-      padding: 24px 0 0;
-      border-top: 1px solid var(--border);
-      border-left: 0;
-    }
   }
 </style>

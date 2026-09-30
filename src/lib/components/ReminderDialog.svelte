@@ -6,6 +6,7 @@
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { ReminderKind } from '$lib/types';
   import DropdownMenu from './DropdownMenu.svelte';
+  import DateTimeField from './DateTimeField.svelte';
 
   interface Props {
     onclose: () => void;
@@ -118,10 +119,7 @@
       </DropdownMenu>
     </div>
 
-    <div class="block">
-      <label class="field-label" for="reminder-when">When</label>
-      <input id="reminder-when" type="datetime-local" bind:value={when} />
-    </div>
+    <DateTimeField bind:value={when} label="When" />
 
     <footer>
       <div class="spacer"></div>
@@ -188,21 +186,6 @@
   }
 
   .picker:hover {
-    border-color: var(--accent);
-  }
-
-  input {
-    height: 34px;
-    padding: 0 11px;
-    border: 1px solid var(--field-border);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    color: var(--fg);
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  input:focus {
     border-color: var(--accent);
   }
 

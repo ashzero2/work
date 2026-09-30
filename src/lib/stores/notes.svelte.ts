@@ -97,14 +97,16 @@ class NotesStore {
     return body;
   }
 
-  async createNote(): Promise<void> {
+  async createNote(openEditor = true): Promise<number | null> {
     try {
       const note = await api.createNote('Untitled note');
       this.bodies.set(note.id, '');
       await this.refresh();
-      this.selectedId = note.id;
+      if (openEditor) this.selectedId = note.id;
+      return note.id;
     } catch (error) {
       toast.show(errorMessage(error));
+      return null;
     }
   }
 

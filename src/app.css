@@ -423,10 +423,8 @@ input {
   outline-offset: -1px;
 }
 
-.drop-before::before,
-.drop-after::after {
-  background-color: var(--accent);
-}
+.drop-before { box-shadow: inset 0 2px 0 var(--accent); }
+.drop-after { box-shadow: inset 0 -2px 0 var(--accent); }
 
 /* Entrance animations only: CSS cannot animate a removal, so a close is instant.
    Every one of these collapses under Reduce Motion, at the end of this file. */
@@ -485,4 +483,30 @@ input {
     transition-duration: 1ms !important;
     transition-delay: 0ms !important;
   }
+}
+
+.workspace-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.workspace-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 28px;
+  padding: 26px 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+.workspace-head h1 { margin: 0 0 4px; font-size: 21px; line-height: 1.2; }
+.workspace-head p { margin: 0; color: var(--muted-fg); font-size: 13px; }
+.head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.workspace-body { flex: 1; min-height: 0; overflow: auto; padding: 20px 28px 28px; }
+.workspace-view .btn { min-height: 36px; }
+@media (max-width: 700px) {
+  .workspace-head { margin-inline: 16px; padding-top: 18px; }
+  .workspace-body { padding: 16px; }
 }

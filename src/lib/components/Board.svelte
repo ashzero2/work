@@ -10,15 +10,17 @@
   interface Props {
     onrename: (column: ColumnModel) => void;
     onaddcolumn: () => void;
+    onaddtask: (id: number) => void;
+    tasks: Task[];
   }
 
-  let { onrename, onaddcolumn }: Props = $props();
+  let { onrename, onaddcolumn, onaddtask, tasks }: Props = $props();
 
   const openByColumn = $derived.by(() => {
     const grouped = new Map<number, Task[]>();
     for (const column of workspace.columns) grouped.set(column.id, []);
-    for (const task of workspace.tasks) {
-      if (task.completedAt !== null || task.parentTaskId !== null) continue;
+    for (const task of tasks) {
+      if (task.parentTaskId !== null) continue;
       grouped.get(task.columnId)?.push(task);
     }
     for (const list of grouped.values()) list.sort((a, b) => a.position - b.position);
@@ -64,7 +66,7 @@
   <div class="board-wrap">
     <div class="board" bind:this={board} onscroll={measure}>
       {#each workspace.columns as column (column.id)}
-        <Column {column} tasks={openByColumn.get(column.id) ?? []} {onrename} />
+        <Column {column} tasks={openByColumn.get(column.id) ?? []} {onrename} {onaddcolumn} onadd={() => onaddtask(column.id)} />
       {/each}
     </div>
     {#if moreRight}
@@ -82,9 +84,9 @@
   .board {
     display: flex;
     align-items: flex-start;
-    gap: 0;
+    gap: 14px;
     height: 100%;
-    padding: 28px 32px;
+    padding: 0;
     overflow: auto;
   }
 

@@ -67,6 +67,7 @@ export interface Note {
 }
 
 export interface NoteCard extends Note {
+  preview: string;
   tags: string[];
 }
 

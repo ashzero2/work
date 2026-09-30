@@ -7,6 +7,7 @@
   let title = $state('');
   let input: HTMLInputElement | null = null;
   let saving = $state(false);
+  let error = $state('');
 
   onMount(async () => {
     // This window has its own document, so it applies the theme itself —
@@ -19,8 +20,12 @@
     const trimmed = title.trim();
     if (trimmed.length === 0 || saving) return;
     saving = true;
+    error = '';
     try {
       await captureTask(trimmed);
+      title = '';
+    } catch (cause) {
+      error = String(cause);
     } finally {
       saving = false;
     }
@@ -34,8 +39,10 @@
 <svelte:window onkeydown={onKeydown} />
 
 <main class="capture">
-  <div class="drag" data-tauri-drag-region></div>
+  <div class="drag" data-tauri-drag-region>Quick capture / New task</div>
+  <label for="capture-title">Task title</label>
   <input
+    id="capture-title"
     bind:this={input}
     bind:value={title}
     aria-label="Task title"
@@ -46,6 +53,8 @@
     }}
   />
   <p class="hint">Enter adds it to your first column · Esc closes</p>
+  {#if error}<p class="hint" role="alert">{error}</p>{/if}
+  <button class="btn btn-primary" disabled={!title.trim() || saving} onclick={() => void save()}>{saving ? 'Adding…' : 'Add task'}</button>
 </main>
 
 <style>
@@ -61,8 +70,14 @@
 
   .drag {
     flex-shrink: 0;
-    height: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 13px;
   }
+
+  label { font-size: 12px; font-weight: 600; }
+  .btn { align-self: flex-start; min-height: 32px; }
 
   input {
     height: 38px;

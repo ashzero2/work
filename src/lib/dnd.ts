@@ -8,11 +8,9 @@ export const columnContainer = (id: number): string => `column-${id}`;
 
 const byPosition = (a: Task, b: Task): number => a.position - b.position;
 
-const openTasksInColumn = (columnId: number): Task[] =>
+const siblingsInColumn = (columnId: number): Task[] =>
   workspace.tasks
-    .filter(
-      (task) => task.columnId === columnId && task.completedAt === null && task.parentTaskId === null
-    )
+    .filter((task) => task.columnId === columnId && task.parentTaskId === null)
     .sort(byPosition);
 
 /// Translates a drop onto a card or a column lane into the fractional-rank
@@ -38,7 +36,7 @@ export function applyDrop(state: DragDropState<Task>): void {
     return;
   }
 
-  const next = openTasksInColumn(before.columnId).find((task) => task.position > before.position);
+  const next = siblingsInColumn(before.columnId).find((task) => task.position > before.position);
   if (next) {
     void workspace.moveTaskBefore(state.draggedItem.id, before.columnId, next.position);
   } else {

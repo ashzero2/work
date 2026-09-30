@@ -33,8 +33,9 @@
     await theme.load();
 
     const stored = await getSetting('settings.pane');
-    if (stored !== null && panes.some((entry) => entry.id === stored)) {
-      pane = stored as Pane;
+    const remembered = stored?.toLowerCase();
+    if (remembered && panes.some((entry) => entry.id === remembered)) {
+      pane = remembered as Pane;
     }
     await setSettingsPane(labelFor(pane));
 
@@ -54,6 +55,13 @@
     };
   });
 
+  $effect(() => {
+    const pending = listen<string>('settings:navigate', ({ payload }) => {
+      if (panes.some(entry => entry.id === payload)) void choose(payload as Pane);
+    });
+    return () => { void pending.then(off => off()); };
+  });
+
   async function choose(next: Pane): Promise<void> {
     pane = next;
     await setSettingsPane(labelFor(next));
@@ -61,6 +69,8 @@
 </script>
 
 <div class="settings">
+  <header><h1>Settings</h1><p>Preferences for this local workspace</p></header>
+  <div class="settings-layout">
   <nav class="panes" aria-label="Settings panes">
     {#each panes as entry (entry.id)}
       <button
@@ -87,9 +97,14 @@
       <DataPane />
     {/if}
   </div>
+  </div>
 </div>
 
 <style>
+  header { margin: 22px 24px 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  h1 { margin: 0; font-size: 21px; }
+  header p { margin: 4px 0 0; color: var(--muted-fg); font-size: 13px; }
+  .settings-layout { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; padding: 0 24px; flex: 1; min-height: 0; }
   .settings {
     display: flex;
     flex-direction: column;
@@ -102,13 +117,15 @@
   .panes {
     display: flex;
     flex-shrink: 0;
-    gap: 2px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 14px;
+    border-right: 1px solid var(--border);
   }
 
   .pane-button {
-    height: 28px;
+    min-height: 36px;
+    text-align: left;
     padding: 0 12px;
     border: none;
     border-radius: var(--radius-sm);
@@ -132,7 +149,7 @@
   .pane {
     flex: 1;
     min-height: 0;
-    padding: 22px 20px 32px;
+    padding: 0 0 24px;
     overflow-y: auto;
   }
 </style>

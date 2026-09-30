@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import { showSettingsWindow } from '$lib/api';
+  import { showSettingsWindow, showCaptureWindow } from '$lib/api';
   import { bestScore } from '$lib/fuzzy';
   import { navigation } from '$lib/stores/navigation.svelte';
   import { notes } from '$lib/stores/notes.svelte';
@@ -48,6 +48,20 @@
         detail: '',
         run: () => navigation.setSection(section.id)
       })),
+      {
+        id: 'create-task',
+        kind: 'Create',
+        label: 'New task',
+        detail: 'Quick capture',
+        run: () => void showCaptureWindow()
+      },
+      {
+        id: 'create-note',
+        kind: 'Create',
+        label: 'New note',
+        detail: '',
+        run: () => { navigation.setSection('notes'); void notes.createNote(); }
+      },
       {
         id: 'settings',
         kind: 'Open',

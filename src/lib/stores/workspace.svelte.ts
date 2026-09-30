@@ -92,11 +92,17 @@ class WorkspaceStore {
     await this.refresh();
   }
 
-  async completeTask(id: number): Promise<void> {
-    this.tasks = this.tasks.map((task) =>
-      task.id === id ? { ...task, completedAt: task.completedAt ?? new Date().toISOString() } : task
+  async toggleTaskCompletion(id: number): Promise<void> {
+    const task = this.tasks.find((candidate) => candidate.id === id);
+    if (!task || (task.completedAt !== null && task.repeatRule !== null)) return;
+
+    const reopening = task.completedAt !== null;
+    this.tasks = this.tasks.map((candidate) =>
+      candidate.id === id
+        ? { ...candidate, completedAt: reopening ? null : new Date().toISOString() }
+        : candidate
     );
-    await this.persist(() => api.completeTask(id));
+    await this.persist(() => reopening ? api.reopenTask(id) : api.completeTask(id));
   }
 
   async deleteTask(id: number): Promise<void> {

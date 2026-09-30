@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Ellipsis, Pencil, Trash2 } from '@lucide/svelte';
+  import { Ellipsis, Pencil, Plus, Trash2 } from '@lucide/svelte';
   import { droppable, type DragDropState } from '@thisux/sveltednd';
 
   import { applyDrop, columnContainer } from '$lib/dnd';
@@ -12,9 +12,11 @@
     column: ColumnModel;
     tasks: Task[];
     onrename: (column: ColumnModel) => void;
+    onadd: () => void;
+    onaddcolumn: () => void;
   }
 
-  let { column, tasks, onrename }: Props = $props();
+  let { column, tasks, onrename, onadd, onaddcolumn }: Props = $props();
 
   const count = $derived(tasks.length);
   const overWip = $derived(column.wipLimit !== null && count > column.wipLimit);
@@ -27,6 +29,9 @@
 
 <section
   class="lane"
+  role="group"
+  aria-label={`${column.name} column`}
+  data-column-id={column.id}
   use:droppable={{ container: columnContainer(column.id), callbacks: { onDrop } }}
 >
   <header class="lane-head">
@@ -39,6 +44,7 @@
         </button>
       {/snippet}
       {#snippet content({ close })}
+        <button class="menu-item" onclick={() => { close(); onaddcolumn(); }}><Plus size={14} /> Add column</button>
         <button
           class="menu-item"
           onclick={() => {
@@ -69,7 +75,7 @@
         {task}
         subtasksDone={progress.done}
         subtasksTotal={progress.total}
-        oncomplete={(id) => void workspace.completeTask(id)}
+        oncomplete={(id) => void workspace.toggleTaskCompletion(id)}
         ondelete={(id) => void workspace.deleteTask(id)}
       />
     {/each}
@@ -77,20 +83,23 @@
       <div class="lane-empty">No tasks</div>
     {/if}
   </div>
+  <button class="btn add-task" onclick={onadd}><Plus size={14} /> Add task</button>
 </section>
 
 <style>
+  .add-task { width: 100%; flex-shrink: 0; }
   .lane {
     display: flex;
     flex-direction: column;
-    gap: 0;
-    width: clamp(280px, 30vw, 380px);
+    gap: 10px;
+    width: max(240px, calc((100% - 28px) / 3));
+    min-height: 475px;
     max-height: 100%;
     flex-shrink: 0;
-    padding: 0 20px;
-    border-left: 1px solid var(--border);
-    border-radius: 0;
-    background: transparent;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--lane);
   }
 
   .lane-head {
@@ -130,7 +139,7 @@
   .lane-cards {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 10px;
     min-height: 44px;
     overflow-y: auto;
   }

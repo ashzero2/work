@@ -99,6 +99,12 @@ class PomodoroStore {
     await this.advance(session.id, false);
   }
 
+  async finish(): Promise<void> {
+    const session = this.session;
+    if (session === null) return;
+    await this.advance(session.id, true);
+  }
+
   async stop(): Promise<void> {
     const session = this.session;
     if (session === null) return;
