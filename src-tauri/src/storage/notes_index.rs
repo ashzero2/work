@@ -14,6 +14,17 @@ pub struct NewNoteMeta {
     pub pos_y: Option<f64>,
 }
 
+pub fn preview(conn: &Connection, id: i64) -> Result<String> {
+    Ok(conn
+        .query_row(
+            "SELECT substr(body, 1, 240) FROM notes_fts WHERE rowid = ?1",
+            [id],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()?
+        .unwrap_or_default())
+}
+
 pub fn create(conn: &Connection, new_note: NewNoteMeta, body: &str) -> Result<NoteMeta> {
     let now = Utc::now().to_rfc3339();
     conn.execute(

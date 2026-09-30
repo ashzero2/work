@@ -71,10 +71,18 @@ pub fn hide_capture_window(app: AppHandle) {
     crate::quick_capture::hide(&app);
 }
 
+#[tauri::command]
+pub fn show_capture_window(app: AppHandle) {
+    crate::quick_capture::reveal(&app);
+}
+
 /// Opens the settings window: the palette's way in, beside the menu item and ⌘,.
 #[tauri::command]
-pub fn show_settings_window(app: AppHandle) {
+pub fn show_settings_window(app: AppHandle, pane: Option<String>) {
     crate::settings_window::show(&app);
+    if let Some(pane) = pane {
+        let _ = app.emit_to(crate::settings_window::LABEL, "settings:navigate", pane);
+    }
 }
 
 /// Remembers which pane the settings window is on, and puts that name in the

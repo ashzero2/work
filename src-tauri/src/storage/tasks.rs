@@ -105,6 +105,15 @@ pub fn complete(conn: &Connection, id: i64) -> Result<()> {
     Ok(())
 }
 
+pub fn reopen(conn: &Connection, id: i64) -> Result<()> {
+    let now = Utc::now().to_rfc3339();
+    conn.execute(
+        "UPDATE tasks SET completed_at = NULL, updated_at = ?1 WHERE id = ?2",
+        params![now, id],
+    )?;
+    Ok(())
+}
+
 /// Completes a task, and if it repeats, creates its next occurrence —
 /// returning that new task, if one was created.
 pub fn complete_and_recur(conn: &Connection, id: i64) -> Result<Option<Task>> {

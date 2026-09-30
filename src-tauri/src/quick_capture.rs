@@ -18,7 +18,7 @@ pub const DEFAULT_SHORTCUT: &str = "CmdOrCtrl+Shift+K";
 /// Room for one field and its hint line, and no more — this is a capture box,
 /// not a second app.
 const WIDTH: f64 = 560.0;
-const HEIGHT: f64 = 104.0;
+const HEIGHT: f64 = 230.0;
 
 /// What is bound right now, so a change can release it first: the plugin errors
 /// on registering a combination it already holds rather than replacing it.

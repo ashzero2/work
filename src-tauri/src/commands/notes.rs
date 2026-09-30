@@ -15,11 +15,17 @@ pub struct NoteCard {
     #[serde(flatten)]
     pub note: NoteMeta,
     pub tags: Vec<String>,
+    pub preview: String,
 }
 
 fn card(conn: &Connection, note: NoteMeta) -> Result<NoteCard> {
     let tags = tags::names_for_entity(conn, EntityKind::Note, note.id)?;
-    Ok(NoteCard { note, tags })
+    let preview = notes_index::preview(conn, note.id)?;
+    Ok(NoteCard {
+        note,
+        tags,
+        preview,
+    })
 }
 
 #[tauri::command]

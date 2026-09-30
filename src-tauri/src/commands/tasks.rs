@@ -23,6 +23,11 @@ pub fn complete_task(id: i64, state: State<'_, Mutex<Connection>>) -> Result<Opt
 }
 
 #[tauri::command]
+pub fn reopen_task(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
+    tasks::reopen(&state.lock().unwrap(), id)
+}
+
+#[tauri::command]
 pub fn delete_task(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
     tasks::delete(&state.lock().unwrap(), id)
 }
