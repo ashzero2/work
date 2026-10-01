@@ -1,7 +1,7 @@
 {
-  "name": "work-dashboard",
+  "name": "tittle",
   "version": "0.1.0",
-  "description": "Personal work dashboard: tasks, notes, Pomodoro, reminders.",
+  "description": "A small workspace for tasks, notes, focus, and reminders.",
   "type": "module",
   "license": "MIT",
   "scripts": {

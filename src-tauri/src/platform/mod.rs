@@ -16,8 +16,8 @@ pub type NotificationActionHandler = Box<dyn Fn(&str, &str) + Send + Sync>;
 /// Notification action identifiers. Defined here rather than next to the macOS
 /// code so the handler that maps an action back onto reminder state can name
 /// them on every platform.
-pub const ACTION_SNOOZE: &str = "work-dashboard.snooze";
-pub const ACTION_DISMISS: &str = "work-dashboard.dismiss";
+pub const ACTION_SNOOZE: &str = "tittle.snooze";
+pub const ACTION_DISMISS: &str = "tittle.dismiss";
 
 /// What the user answered when asked for permission. `None` until they have been
 /// asked, which is what lets the UI say "we asked and you said no" rather than

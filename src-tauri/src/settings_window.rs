@@ -10,7 +10,7 @@ pub const LABEL: &str = "settings";
 /// from shrinking it — and it keeps the window from joining the window cycle.
 pub fn install(app: &App) -> tauri::Result<()> {
     let window = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("settings".into()))
-        .title("Work Dashboard Settings")
+        .title("Tittle Settings")
         .inner_size(680.0, 560.0)
         .min_inner_size(560.0, 420.0)
         .minimizable(false)

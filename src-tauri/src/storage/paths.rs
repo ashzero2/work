@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-/// The app's data directory (`~/work-dashboard` by default).
+/// The app's data directory (`~/tittle` by default).
 pub fn data_dir() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("work-dashboard")
+        .join("tittle")
 }
 
 pub fn db_path() -> PathBuf {

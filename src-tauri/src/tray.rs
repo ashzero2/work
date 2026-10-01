@@ -23,8 +23,8 @@ const TICK: Duration = Duration::from_secs(1);
 /// menu rather than the icon's click event, which macOS has a history of not
 /// delivering.
 pub fn install(app: &App) -> tauri::Result<()> {
-    let open = MenuItem::with_id(app, OPEN_ID, "Open Work Dashboard", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, QUIT_ID, "Quit Work Dashboard", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, OPEN_ID, "Open Tittle", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, QUIT_ID, "Quit Tittle", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &PredefinedMenuItem::separator(app)?, &quit])?;
 
     TrayIconBuilder::with_id(TRAY_ID)

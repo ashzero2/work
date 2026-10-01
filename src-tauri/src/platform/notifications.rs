@@ -19,7 +19,7 @@ use objc2_user_notifications::{
 use super::{ACTION_DISMISS, ACTION_SNOOZE, NotificationActionHandler};
 
 /// The category every reminder is posted under, so the buttons appear.
-const CATEGORY: &str = "work-dashboard.reminder";
+const CATEGORY: &str = "tittle.reminder";
 
 /// `UNUserNotificationCenter.current()` raises when the process has no bundle
 /// identifier — which is every `tauri dev` run and any bare binary. So this

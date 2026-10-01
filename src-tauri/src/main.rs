@@ -1,3 +1,3 @@
 fn main() {
-    work_dashboard::run();
+    tittle::run();
 }

@@ -14,15 +14,15 @@ The project is intended to become an open-source option for other solo users wit
 
 ## Product Purpose
 
-Worke is a minimal work-management desktop app for tasks, markdown notes, focused work sessions, and reminders. It exists to make everyday work capture and follow-through feel lightweight and coherent. Success means managing the daily work loop without paying for a heavy suite or maintaining a collection of plugins and companion apps.
+Tittle is a minimal work-management desktop app for tasks, markdown notes, focused work sessions, and reminders. It exists to make everyday work capture and follow-through feel lightweight and coherent. Success means managing the daily work loop without paying for a heavy suite or maintaining a collection of plugins and companion apps.
 
 ## Positioning
 
-Worke combines a real task workspace, file-backed markdown notes, a native Pomodoro loop, and operating-system integrations in one local-first app. Its position is defined by deliberate small scope, open-source ownership, no subscription requirement, and an integrated daily workflow rather than a broad team-product feature set.
+Tittle combines a real task workspace, file-backed markdown notes, a native Pomodoro loop, and operating-system integrations in one local-first app. Its position is defined by deliberate small scope, open-source ownership, no subscription requirement, and an integrated daily workflow rather than a broad team-product feature set.
 
 ## Operating Context
 
-Worke is used as a desktop companion during daily individual work. Users capture tasks from the app or a global shortcut, organize them in a kanban or list view, record quick notes and meeting notes, attach focus sessions to tasks, and rely on native reminders and a menu-bar timer while the main window is hidden or closed.
+Tittle is used as a desktop companion during daily individual work. Users capture tasks from the app or a global shortcut, organize them in a kanban or list view, record quick notes and meeting notes, attach focus sessions to tasks, and rely on native reminders and a menu-bar timer while the main window is hidden or closed.
 
 The app is cross-platform in its product direction, with macOS-native behavior prioritized for the first implementation. It works locally without an account or server. Structured task data lives in SQLite; note bodies live as markdown files with frontmatter and are indexed locally.
 
@@ -40,14 +40,15 @@ The app is cross-platform in its product direction, with macOS-native behavior p
 
 ## Brand Commitments
 
-- Working product name: Worke; the desktop product name currently appears as Work Dashboard in the Tauri configuration.
+- Product name: Tittle. It was called Worke, and before that the app shipped as Work Dashboard;
+  the data directory and bundle identifier now both read Tittle.
 - The product is open-source and minimal by intent.
 - The voice should remain direct, practical, and low-friction rather than enterprise-oriented or feature-marketing-heavy.
 
 ## Evidence on Hand
 
-- `docs/plans/work-dashboard-plan.md` contains the confirmed architecture, data model, feature scope, and product decisions.
-- `docs/plans/work-dashboard-market-research.md` contains comparative research on task, notes, and Pomodoro tools.
+- `docs/plans/tittle-plan.md` contains the confirmed architecture, data model, feature scope, and product decisions.
+- `docs/plans/tittle-market-research.md` contains comparative research on task, notes, and Pomodoro tools.
 - `docs/plans/notes-research-deep-dive.md` contains research on note organization, menu-bar Pomodoro usage, and scope decisions.
 - `docs/plans/ui-design-research.md` contains interaction and usability research for the existing interface direction.
 - The repository contains an implemented Tauri v2 + SvelteKit prototype with task, notes, focus, reminders, settings, quick capture, and native integration surfaces.

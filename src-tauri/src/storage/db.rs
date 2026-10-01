@@ -14,7 +14,7 @@ pub fn open() -> Result<Connection> {
 }
 
 /// Opens a database at an explicit path — used by callers (e.g. tests) that
-/// need to avoid touching the real `~/work-dashboard` directory.
+/// need to avoid touching the real `~/tittle` directory.
 pub fn open_at(path: &Path) -> Result<Connection> {
     let mut conn = Connection::open(path)?;
     conn.pragma_update(None, "foreign_keys", true)?;

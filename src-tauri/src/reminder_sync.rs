@@ -77,8 +77,7 @@ fn title_for(kind: ReminderKind) -> String {
 
 fn body_for(conn: &Connection, reminder: &Reminder) -> Result<String> {
     let Some(task_id) = reminder.task_id else {
-        return Ok("Open Work Dashboard".to_string());
+        return Ok("Open Tittle".to_string());
     };
-    Ok(tasks::get(conn, task_id)?
-        .map_or_else(|| "Open Work Dashboard".to_string(), |task| task.title))
+    Ok(tasks::get(conn, task_id)?.map_or_else(|| "Open Tittle".to_string(), |task| task.title))
 }

@@ -3761,6 +3761,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee"
 
 [[package]]
+name = "tittle"
+version = "0.1.0"
+dependencies = [
+ "block2",
+ "chrono",
+ "dirs",
+ "gray_matter",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "objc2-user-notifications",
+ "rusqlite",
+ "rusqlite_migration",
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-global-shortcut",
+ "tempfile",
+ "thiserror 2.0.21",
+ "window-vibrancy 0.6.0",
+]
+
+[[package]]
 name = "tokio"
 version = "1.53.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4735,32 +4761,6 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
-
-[[package]]
-name = "work-dashboard"
-version = "0.1.0"
-dependencies = [
- "block2",
- "chrono",
- "dirs",
- "gray_matter",
- "objc2",
- "objc2-app-kit",
- "objc2-foundation",
- "objc2-user-notifications",
- "rusqlite",
- "rusqlite_migration",
- "serde",
- "serde_json",
- "serde_yaml_ng",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-global-shortcut",
- "tempfile",
- "thiserror 2.0.21",
- "window-vibrancy 0.6.0",
-]
 
 [[package]]
 name = "writeable"

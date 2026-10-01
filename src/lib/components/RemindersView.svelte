@@ -61,7 +61,7 @@
       <div class="banner">
         <BellOff size={16} />
         <div class="banner-text">
-          <strong>Notifications are turned off for Work Dashboard.</strong>
+          <strong>Notifications are turned off for Tittle.</strong>
           <p>Reminders are saved, but macOS won’t show them until notifications are allowed.</p>
         </div>
         <button class="btn" onclick={() => void reminders.openSettings()}>

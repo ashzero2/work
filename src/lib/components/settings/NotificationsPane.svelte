@@ -16,7 +16,7 @@
   {:else if reminders.authorized === false}
     <div class="setting-row">
       <p class="setting-note">
-        macOS is not currently allowing notifications from Work Dashboard, so reminders are saved
+        macOS is not currently allowing notifications from Tittle, so reminders are saved
         but never shown.
       </p>
       <button class="btn" onclick={() => void reminders.openSettings()}>
