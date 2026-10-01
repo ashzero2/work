@@ -46,10 +46,15 @@
   </div>
 
   <div class="brand-row">
-    <span class="brand-mark">W/</span>
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 44 44" focusable="false">
+        <circle cx="22" cy="10.5" r="5.4" />
+        <rect x="18.8" y="22" width="6.4" height="17" rx="2.6" />
+      </svg>
+    </span>
     {#if !collapsed}
       <span class="brand-copy">
-        <strong>worke</strong>
+        <strong>tittle</strong>
       </span>
     {/if}
   </div>
@@ -222,12 +227,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+    flex: none;
     color: var(--accent);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: -0.04em;
+  }
+
+  .brand-mark svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+    overflow: visible;
   }
 
   .brand-copy {
