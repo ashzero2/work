@@ -1,8 +1,8 @@
 <script lang="ts">
   import { CalendarDays, ListChecks, RotateCw } from '@lucide/svelte';
 
-  import { dueChip, priorityLabel, repeatLabel, type ChipTone } from '$lib/format';
-  import type { Priority, Task } from '$lib/types';
+  import { dueChip, priorityLabel, priorityTone, repeatLabel } from '$lib/format';
+  import type { Task } from '$lib/types';
 
   interface Props {
     task: Task;
@@ -11,15 +11,6 @@
   }
 
   let { task, subtasksDone = 0, subtasksTotal = 0 }: Props = $props();
-
-  // Low is the quiet one: the least urgent chip should not be the only blue
-  // thing in the row.
-  const priorityTone: Record<Priority, ChipTone | null> = {
-    none: null,
-    low: 'muted',
-    medium: 'warning',
-    high: 'danger'
-  };
 
   const due = $derived(task.dueAt ? dueChip(task.dueAt) : null);
   const tone = $derived(priorityTone[task.priority]);

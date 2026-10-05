@@ -1,4 +1,14 @@
+import type { Priority } from './types';
+
 export type ChipTone = 'muted' | 'info' | 'warning' | 'danger';
+
+/// Low is the quiet one: the least urgent chip should not be the only blue thing in a row.
+export const priorityTone: Record<Priority, ChipTone | null> = {
+  none: null,
+  low: 'muted',
+  medium: 'warning',
+  high: 'danger'
+};
 
 export interface DueChip {
   label: string;

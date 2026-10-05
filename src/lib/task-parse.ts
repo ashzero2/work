@@ -10,8 +10,10 @@ export interface ParsedTask {
   /// True when a date was found with no clock time, so it should read as a day rather than an instant.
   allDay: boolean;
   priority: Priority;
-  /// The exact fragments that were consumed, so a confirmation UI can echo them back.
-  matched: string[];
+  /// The exact date fragment consumed, so a caller can strip it from the title or offer to keep it.
+  dateText: string | null;
+  /// The exact priority sigil consumed, for the same reason.
+  priorityText: string | null;
 }
 
 /// A date with no clock time still needs a time component to fit `DateTimeField`, which defaults
@@ -35,10 +37,10 @@ function collapse(text: string): string {
 
 /// Only a whitespace-delimited run of `!` counts, so a title like `wow!!!` keeps its punctuation
 /// instead of silently losing it and gaining a priority.
-function takePriority(input: string): { priority: Priority; text: string; rest: string } {
+function takePriority(input: string): { priority: Priority; text: string | null; rest: string } {
   const tokens = input.split(/\s+/);
   const index = tokens.findIndex((token) => /^!+$/.test(token));
-  if (index === -1) return { priority: 'none', text: '', rest: input };
+  if (index === -1) return { priority: 'none', text: null, rest: input };
 
   const token = tokens[index];
   tokens.splice(index, 1);
@@ -52,15 +54,21 @@ function takePriority(input: string): { priority: Priority; text: string; rest: 
 /// Reads a date, time, and priority out of one line of free text.
 ///
 /// Parsing is best-effort and biased forward, so `friday` means the coming Friday. Bare times such
-/// as `at 5` are genuinely ambiguous and will resolve to a time today; callers must show the result
-/// for confirmation rather than committing it silently.
+/// as `at 5` are genuinely ambiguous and resolve to the next 05:00 rather than this afternoon;
+/// callers must show the result for confirmation rather than committing it silently.
 export function parseTaskInput(input: string, now: Date = new Date()): ParsedTask {
-  const { priority, text: sigil, rest } = takePriority(input);
-  const matched = sigil ? [sigil] : [];
+  const { priority, text: priorityText, rest } = takePriority(input);
 
   const result = chrono.casual.parse(rest, now, { forwardDate: true })[0];
   if (!result) {
-    return { title: collapse(rest), due: '', allDay: false, priority, matched };
+    return {
+      title: collapse(rest),
+      due: '',
+      allDay: false,
+      priority,
+      dateText: null,
+      priorityText
+    };
   }
 
   const date = result.start.date();
@@ -70,13 +78,22 @@ export function parseTaskInput(input: string, now: Date = new Date()): ParsedTas
     : localDateTime(date, ALL_DAY_HOUR, 0);
 
   const remainder = `${rest.slice(0, result.index)} ${rest.slice(result.index + result.text.length)}`;
-  matched.push(result.text);
 
   return {
     title: collapse(remainder) || collapse(rest),
     due,
     allDay: !hasClockTime,
     priority,
-    matched
+    dateText: result.text,
+    priorityText
   };
+}
+
+/// Removes only the fragments the caller still wants applied, so a rejected one stays in the title.
+export function stripFragments(input: string, fragments: (string | null)[]): string {
+  let out = input;
+  for (const fragment of fragments) {
+    if (fragment) out = out.replace(fragment, ' ');
+  }
+  return collapse(out) || input.trim();
 }

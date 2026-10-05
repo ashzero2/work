@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseTaskInput } from './task-parse';
+import { parseTaskInput, stripFragments } from './task-parse';
 
 // A fixed Saturday, so `friday` means the coming Friday and every expectation is stable.
 const NOW = new Date(2026, 9, 3, 10, 0, 0);
@@ -60,7 +60,7 @@ describe('priority sigils', () => {
     const result = parse('Fix the bug !!!');
 
     expect(result.title).toBe('Fix the bug');
-    expect(result.matched).toContain('!!!');
+    expect(result.priorityText).toBe('!!!');
   });
 
   it('ignores exclamation marks attached to a word', () => {
@@ -79,7 +79,8 @@ describe('text that must not be treated as a date', () => {
 
       expect(result.due).toBe('');
       expect(result.title).toBe(input);
-      expect(result.matched).toEqual([]);
+      expect(result.dateText).toBeNull();
+      expect(result.priorityText).toBeNull();
     }
   );
 });
@@ -123,5 +124,28 @@ describe('title handling', () => {
 
   it('tolerates surrounding whitespace', () => {
     expect(parse('   Call dentist on friday at 3pm   ').title).toBe('Call dentist');
+  });
+});
+
+describe('selective stripping — what a removed chip leaves behind', () => {
+  const input = 'Meet with mentor tomorrow at 09.00pm !!!';
+  const result = parse(input);
+
+  it('removes both fragments when both chips are kept', () => {
+    expect(stripFragments(input, [result.dateText, result.priorityText])).toBe('Meet with mentor');
+  });
+
+  it('keeps a rejected sigil in the title', () => {
+    expect(stripFragments(input, [result.dateText, null])).toBe('Meet with mentor !!!');
+  });
+
+  it('keeps a rejected date phrase in the title', () => {
+    expect(stripFragments(input, [null, result.priorityText])).toBe(
+      'Meet with mentor tomorrow at 09.00pm'
+    );
+  });
+
+  it('keeps everything when both chips are removed', () => {
+    expect(stripFragments(input, [null, null])).toBe(input);
   });
 });
