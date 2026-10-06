@@ -36,10 +36,11 @@
   const ready = $derived(when.length > 0 && !saving);
 
   async function save(): Promise<void> {
-    if (!ready) return;
+    const iso = fromDatetimeLocal(when);
+    if (!ready || iso === null) return;
     saving = true;
     try {
-      await reminders.create(kind, taskId, fromDatetimeLocal(when));
+      await reminders.create(kind, taskId, iso);
       onclose();
     } finally {
       saving = false;

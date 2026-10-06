@@ -4,6 +4,7 @@
   import { showSettingsWindow } from '$lib/api';
   import { formatMoment, fromDatetimeLocal, toDatetimeLocal } from '$lib/format';
   import { kindLabel, reminders, statusLabel } from '$lib/stores/reminders.svelte';
+  import { toast } from '$lib/stores/toast.svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Reminder } from '$lib/types';
   import NotificationKindToggles from './NotificationKindToggles.svelte';
@@ -23,7 +24,12 @@
   }
 
   async function saveEdit(id: number): Promise<void> {
-    await reminders.reschedule(id, fromDatetimeLocal(editedWhen));
+    const when = fromDatetimeLocal(editedWhen);
+    if (when === null) {
+      toast.show('Choose a valid date and time before saving.');
+      return;
+    }
+    await reminders.reschedule(id, when);
     editing = null;
   }
 </script>
