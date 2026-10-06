@@ -29,6 +29,6 @@
     border-radius: var(--radius);
     background: var(--panel);
     box-shadow: var(--shadow-md);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 </style>

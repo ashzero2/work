@@ -152,7 +152,7 @@
     max-width: 320px;
     margin: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-align: right;
   }
 
@@ -164,7 +164,7 @@
     max-width: 320px;
     margin: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-align: right;
   }
 </style>

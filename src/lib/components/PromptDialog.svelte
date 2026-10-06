@@ -79,8 +79,8 @@
 
   h2 {
     margin: 0;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
   }
 
   input {
@@ -90,7 +90,7 @@
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   input:focus {

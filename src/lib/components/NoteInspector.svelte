@@ -57,9 +57,9 @@
 </aside>
 <style>
   .inspector { display: flex; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 320px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); overflow: hidden; }
-  header, footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; } header { border-bottom: 1px solid var(--border); color: var(--muted-fg); font-size: 12px; }
-  input { padding: 18px 20px 12px; border: 0; background: transparent; color: var(--fg); font-size: 20px; font-weight: 650; width: 100%; }
+  header, footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; } header { border-bottom: 1px solid var(--border); color: var(--muted-fg); font-size: var(--text-sm); }
+  input { padding: 18px 20px 12px; border: 0; background: transparent; color: var(--fg); font-size: var(--text-xl); font-weight: var(--weight-semibold); width: 100%; }
   textarea { flex: 1; min-height: 220px; resize: none; padding: 8px 20px 20px; border: 0; background: transparent; color: var(--fg); font: 14px/1.65 var(--font); }
-  .meta { padding: 12px 14px; border-top: 1px solid var(--border); } p, footer span { margin: 0; font-size: 12px; color: var(--muted-fg); } footer { border-top: 1px solid var(--border); }
+  .meta { padding: 12px 14px; border-top: 1px solid var(--border); } p, footer span { margin: 0; font-size: var(--text-sm); color: var(--muted-fg); } footer { border-top: 1px solid var(--border); }
   .danger { color: var(--danger); }
 </style>

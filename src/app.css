@@ -1,137 +1,4 @@
-:root {
-  --bg: #f4f1eb;
-  --fg: #201f1d;
-  --muted-fg: #77736c;
-  --lane: #ebe7df;
-  --panel: #faf8f4;
-  --border: #d2ccc1;
-  --hover: rgba(46, 42, 35, 0.06);
-  --accent: #b95f43;
-  --accent-fg: #fffaf3;
-  --ring-soft: color-mix(in srgb, var(--accent) 30%, transparent);
-  --sidebar-bg: var(--lane);
-  --selection-bg: var(--panel);
-  --selection-fg: var(--fg);
-  --danger: #b94e58;
-  --warning: #a86c20;
-  --info: #35699c;
-  --success: #4c8061;
-  --shadow-sm: none;
-  --shadow-md: 0 14px 34px rgba(35, 29, 22, 0.14);
-  --radius: 6px;
-  --radius-sm: 4px;
-  --radius-lg: 8px;
-  --sidebar-width: 248px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 40px;
-  --content-max: 1440px;
-  /* Form controls need a boundary that reads as one. The decorative --border is
-     deliberately soft (1.46:1); this clears the 3:1 non-text contrast target. */
-  --field-border: #948b7d;
-  /* Three durations and one easing, so the whole app moves at the same tempo.
-     All of them collapse under Reduce Motion — see the end of this file. */
-  --motion-fast: 120ms;
-  --motion: 150ms;
-  --motion-slow: 180ms;
-  --ease: cubic-bezier(0.2, 0, 0, 1);
-  --font:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --bg: #101112;
-    --fg: #ebe8e2;
-    --muted-fg: #92908a;
-    --lane: #17191b;
-    --panel: #1d1f21;
-    --border: #303235;
-    --hover: rgba(255, 249, 237, 0.06);
-    --accent: #d67a58;
-    --accent-fg: #17110f;
-    --ring-soft: color-mix(in srgb, var(--accent) 34%, transparent);
-    --danger: #ee7d83;
-    --warning: #d8a15d;
-    --info: #83add6;
-    --success: #7fb395;
-    --shadow-sm: none;
-    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
-    --field-border: #5c5d5d;
-  }
-}
-
-:root[data-theme='dark'] {
-  --bg: #101112;
-  --fg: #ebe8e2;
-  --muted-fg: #92908a;
-  --lane: #17191b;
-  --panel: #1d1f21;
-  --border: #303235;
-  --hover: rgba(255, 249, 237, 0.06);
-  --accent: #d67a58;
-  --accent-fg: #17110f;
-  --ring-soft: color-mix(in srgb, var(--accent) 34%, transparent);
-  --danger: #ee7d83;
-  --warning: #d8a15d;
-  --info: #83add6;
-  --success: #7fb395;
-  --shadow-sm: none;
-  --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
-  --field-border: #5c5d5d;
-}
-
-/* macOS theme: the sidebar is left transparent so the window's own material
-   shows through, and the content column carries the surface instead. `--accent`
-   is overwritten at runtime with a contrast-safe derivation of the user's
-   system accent; the values here are only the pre-paint fallback. */
-:root[data-theme='macos'] {
-  --bg: #f4f1eb;
-  --fg: #201f1d;
-  --muted-fg: #77736c;
-  --lane: #ebe7df;
-  --panel: #faf8f4;
-  --border: #d2ccc1;
-  --hover: rgba(0, 0, 0, 0.045);
-  --accent: #b95f43;
-  --accent-fg: #ffffff;
-  --ring-soft: color-mix(in srgb, var(--accent) 30%, transparent);
-  --sidebar-bg: transparent;
-  --selection-bg: color-mix(in srgb, var(--accent) 18%, transparent);
-  --selection-fg: var(--fg);
-  --shadow-sm: none;
-  --shadow-md: 0 18px 40px rgba(35, 29, 22, 0.14);
-  --radius-sm: 4px;
-  --field-border: #918b80;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root[data-theme='macos'] {
-    --bg: #101112;
-    --fg: #ebe8e2;
-    --muted-fg: #92908a;
-    --lane: #17191b;
-    --panel: #1d1f21;
-    --border: #303235;
-    --hover: rgba(255, 255, 255, 0.06);
-    --accent: #d67a58;
-    --accent-fg: #17110f;
-    --ring-soft: color-mix(in srgb, var(--accent) 34%, transparent);
-    --danger: #ee7d83;
-    --warning: #d8a15d;
-    --info: #83add6;
-    --success: #7fb395;
-    --shadow-sm: none;
-    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
-    --field-border: #5c5d5d;
-    color-scheme: dark;
-  }
-}
+@import './tokens.css';
 
 * {
   box-sizing: border-box;
@@ -148,8 +15,8 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: var(--text-md);
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -183,6 +50,25 @@ input {
   border: 0;
 }
 
+/* Numerals that sit in a column or tick — counts, dates, timers — must align. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one micro-label treatment: tiny, upper-case, tracked, quiet. */
+.label-caps {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted-fg);
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -191,7 +77,7 @@ input {
 ::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--muted-fg) 30%, transparent);
   border: 3px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background-clip: content-box;
 }
 
@@ -206,8 +92,8 @@ input {
   border-radius: var(--radius-sm);
   background: var(--panel);
   color: var(--fg);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -267,10 +153,10 @@ input {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 7px;
-  border-radius: 3px;
-  font-size: 11px;
-  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  line-height: 1.4;
   white-space: nowrap;
   color: color-mix(in srgb, var(--tone) 82%, var(--fg));
   background: color-mix(in srgb, var(--tone) 12%, transparent);
@@ -301,7 +187,7 @@ input {
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  font-size: 13px;
+  font-size: var(--text-base);
   text-align: left;
   cursor: pointer;
 }
@@ -321,7 +207,7 @@ input {
 .menu-sep {
   height: 1px;
   margin: 4px 2px;
-  background: var(--border);
+  background: var(--divider);
 }
 
 /* One tempo for every interactive surface, so nothing in the app snaps while
@@ -345,7 +231,7 @@ input {
   min-height: 26px;
   height: 26px;
   padding: 0 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .icon-btn.tiny {
@@ -357,8 +243,8 @@ input {
    defined once instead of five times over. */
 .setting-title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
 }
 
 .setting-row {
@@ -376,18 +262,18 @@ input {
 }
 
 .setting-label {
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .setting-hint {
   color: var(--muted-fg);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .setting-note {
   margin: 0;
   color: var(--muted-fg);
-  font-size: 13px;
+  font-size: var(--text-base);
   line-height: 1.45;
 }
 
@@ -497,14 +383,14 @@ input {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
-  margin: 0 28px;
+  margin: 0 var(--gutter);
   padding: 26px 0 14px;
   border-bottom: 1px solid var(--border);
 }
-.workspace-head h1 { margin: 0 0 4px; font-size: 21px; line-height: 1.2; }
-.workspace-head p { margin: 0; color: var(--muted-fg); font-size: 13px; }
+.workspace-head h1 { margin: 0 0 4px; font-size: var(--text-xl); line-height: 1.2; letter-spacing: var(--tracking-tight); }
+.workspace-head p { margin: 0; color: var(--muted-fg); font-size: var(--text-base); }
 .head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.workspace-body { flex: 1; min-height: 0; overflow: auto; padding: 20px 28px 28px; }
+.workspace-body { flex: 1; min-height: 0; overflow: auto; padding: 20px var(--gutter) 28px; }
 .workspace-view .btn { min-height: 36px; }
 @media (max-width: 700px) {
   .workspace-head { margin-inline: 16px; padding-top: 18px; }

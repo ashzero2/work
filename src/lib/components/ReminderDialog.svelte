@@ -164,9 +164,9 @@
 
   .field-label {
     color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
@@ -181,7 +181,7 @@
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
     cursor: pointer;
   }
 
@@ -192,7 +192,7 @@
   .hint {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   footer {

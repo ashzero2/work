@@ -51,7 +51,7 @@
 
 <style>
   .completed .card-title { text-decoration: line-through; color: var(--muted-fg); }
-  .description { margin: 0; font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .description { margin: 0; font-size: var(--text-base); line-height: var(--leading-normal); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .card {
     display: flex;
     flex-direction: column;
@@ -64,8 +64,7 @@
   }
 
   .card:hover {
-    border-color: var(--accent);
-    background: var(--hover);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   }
 
   .row {
@@ -77,8 +76,8 @@
   .card-title {
     flex: 1;
     min-width: 0;
-    font-size: 14px;
-    line-height: 1.35;
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
   }
 
   .actions {

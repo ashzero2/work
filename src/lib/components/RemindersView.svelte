@@ -149,7 +149,7 @@
 
 <style>
   .body { display: flex; flex-direction: column; gap: 18px; }
-  details { font-size: 13px; } summary { cursor: pointer; margin-bottom: 8px; color: var(--muted-fg); }
+  details { font-size: var(--text-base); } summary { cursor: pointer; margin-bottom: 8px; color: var(--muted-fg); }
   .banner {
     display: flex;
     align-items: flex-start;
@@ -167,14 +167,14 @@
   }
 
   .banner strong {
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .banner p {
     margin: 3px 0 0;
     color: var(--muted-fg);
-    font-size: 13px;
-    line-height: 1.45;
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
   }
 
   .block {
@@ -185,27 +185,27 @@
 
   .block-label {
     color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
   .hint {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .row {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 48px;
+    min-height: 44px;
     padding: 9px 12px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--divider);
     background: var(--panel);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .row:hover {
@@ -232,7 +232,7 @@
 
   .row-task {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -257,13 +257,13 @@
   }
 
   input[type='datetime-local'] {
-    height: 28px;
+    height: 30px;
     padding: 0 8px;
     border: 1px solid var(--field-border);
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
     font-variant-numeric: tabular-nums;
   }
 </style>

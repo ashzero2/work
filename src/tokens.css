@@ -1,0 +1,243 @@
+/* Design tokens for Tittle.
+   Two axes drive everything: `data-theme` (light | dark | macos) and
+   `data-palette` (warm, the default, or cool). Raw colour lives only in the
+   `--n-*` ramps; every component reads the semantic tokens mapped once below,
+   so adding a palette is a new ramp, not a new set of semantics. */
+
+/* ---------------------------------------------------------------------------
+   Warm (default palette) — ramps
+   --------------------------------------------------------------------------- */
+:root,
+:root[data-theme='light'],
+:root[data-theme='macos'] {
+  --n-canvas: #f4f1eb;
+  --n-surface: #faf8f4;
+  --n-lane: #ebe7df;
+  --n-line: #d2ccc1;
+  --n-line-strong: #948b7d;
+  --n-text: #201f1d;
+  --n-text-muted: #6b675f;
+  --n-hover: rgba(46, 42, 35, 0.06);
+  --n-accent: #ad5438;
+  --n-accent-fg: #fffaf3;
+  --n-danger: #b94e58;
+  --n-warning: #a86c20;
+  --n-info: #35699c;
+  --n-success: #4c8061;
+}
+
+:root[data-theme='dark'] {
+  --n-canvas: #101112;
+  --n-surface: #1d1f21;
+  --n-lane: #17191b;
+  --n-line: #303235;
+  --n-line-strong: #6b6c6c;
+  --n-text: #ebe8e2;
+  --n-text-muted: #92908a;
+  --n-hover: rgba(255, 249, 237, 0.06);
+  --n-accent: #d67a58;
+  --n-accent-fg: #17110f;
+  --n-danger: #ee7d83;
+  --n-warning: #d8a15d;
+  --n-info: #83add6;
+  --n-success: #7fb395;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :root[data-theme='macos'] {
+    --n-canvas: #101112;
+    --n-surface: #1d1f21;
+    --n-lane: #17191b;
+    --n-line: #303235;
+    --n-line-strong: #6b6c6c;
+    --n-text: #ebe8e2;
+    --n-text-muted: #92908a;
+    --n-hover: rgba(255, 249, 237, 0.06);
+    --n-accent: #d67a58;
+    --n-accent-fg: #17110f;
+    --n-danger: #ee7d83;
+    --n-warning: #d8a15d;
+    --n-info: #83add6;
+    --n-success: #7fb395;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Cool palette — ramps (opt-in via data-palette="cool")
+   --------------------------------------------------------------------------- */
+:root[data-palette='cool'] {
+  --n-canvas: #fbfbfc;
+  --n-surface: #ffffff;
+  --n-lane: #f4f5f7;
+  --n-line: #e6e8ec;
+  --n-line-strong: #767e8a;
+  --n-text: #17181c;
+  --n-text-muted: #5f6672;
+  --n-hover: rgba(15, 18, 25, 0.05);
+  --n-accent: #2b62d9;
+  --n-accent-fg: #ffffff;
+  --n-danger: #cf3f43;
+  --n-warning: #a15c07;
+  --n-info: #2b62d9;
+  --n-success: #2f7d4f;
+}
+
+:root[data-palette='cool'][data-theme='dark'] {
+  --n-canvas: #0b0d10;
+  --n-surface: #14171b;
+  --n-lane: #101317;
+  --n-line: #24282e;
+  --n-line-strong: #666d75;
+  --n-text: #e7e9ee;
+  --n-text-muted: #9aa1ac;
+  --n-hover: rgba(255, 255, 255, 0.06);
+  --n-accent: #6f9bff;
+  --n-accent-fg: #0b0d10;
+  --n-danger: #f2777f;
+  --n-warning: #dcae6b;
+  --n-info: #8fb4ff;
+  --n-success: #79c39a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette='cool']:not([data-theme]),
+  :root[data-palette='cool'][data-theme='macos'] {
+    --n-canvas: #0b0d10;
+    --n-surface: #14171b;
+    --n-lane: #101317;
+    --n-line: #24282e;
+    --n-line-strong: #666d75;
+    --n-text: #e7e9ee;
+    --n-text-muted: #9aa1ac;
+    --n-hover: rgba(255, 255, 255, 0.06);
+    --n-accent: #6f9bff;
+    --n-accent-fg: #0b0d10;
+    --n-danger: #f2777f;
+    --n-warning: #dcae6b;
+    --n-info: #8fb4ff;
+    --n-success: #79c39a;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Semantic tokens — mapped once from whichever ramp is active
+   --------------------------------------------------------------------------- */
+:root {
+  --bg: var(--n-canvas);
+  --panel: var(--n-surface);
+  --lane: var(--n-lane);
+  --fg: var(--n-text);
+  --muted-fg: var(--n-text-muted);
+  --border: var(--n-line);
+  --divider: color-mix(in srgb, var(--n-line) 60%, transparent);
+  /* Form controls need a boundary that reads as one; the decorative --border is
+     deliberately soft, this clears the 3:1 non-text contrast target. */
+  --field-border: var(--n-line-strong);
+  --hover: var(--n-hover);
+  --accent: var(--n-accent);
+  --accent-fg: var(--n-accent-fg);
+  --ring-soft: color-mix(in srgb, var(--accent) 30%, transparent);
+
+  --sidebar-bg: var(--n-lane);
+  --selection-bg: var(--n-surface);
+  --selection-fg: var(--n-text);
+
+  --danger: var(--n-danger);
+  --warning: var(--n-warning);
+  --info: var(--n-info);
+  --success: var(--n-success);
+}
+
+/* macOS is a material, not a palette: the sidebar goes transparent so the
+   window's own material shows through, while the ramp still supplies the
+   colours. `--accent` is overwritten at runtime with a contrast-safe derivation
+   of the user's system accent. */
+:root[data-theme='macos'] {
+  --sidebar-bg: transparent;
+  --selection-bg: color-mix(in srgb, var(--accent) 18%, transparent);
+  --selection-fg: var(--fg);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='macos'] {
+    color-scheme: dark;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scales — type, space, radius, elevation, motion
+   --------------------------------------------------------------------------- */
+:root {
+  --font:
+    'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --tracking-tight: -0.011em;
+  --tracking-label: 0.075em;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --gutter: 28px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(35, 29, 22, 0.05);
+  --shadow-sm: none;
+  --shadow-md: 0 14px 34px rgba(35, 29, 22, 0.14);
+  --shadow-lg: 0 24px 60px rgba(35, 29, 22, 0.2);
+
+  --sidebar-width: 248px;
+  --content-max: 1440px;
+
+  /* Three durations and one easing, so the whole app moves at the same tempo.
+     All of them collapse under Reduce Motion — see the end of app.css. */
+  --motion-fast: 120ms;
+  --motion: 150ms;
+  --motion-slow: 180ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root[data-theme='dark'] {
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
+  --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :root[data-theme='macos'] {
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.46);
+    --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.55);
+  }
+}

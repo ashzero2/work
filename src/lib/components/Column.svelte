@@ -98,7 +98,7 @@
     flex-shrink: 0;
     padding: 12px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     background: var(--lane);
   }
 
@@ -108,15 +108,15 @@
     gap: 10px;
     min-height: 40px;
     padding: 0 0 10px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--divider);
   }
 
   .lane-name {
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
     white-space: nowrap;
     text-overflow: ellipsis;
   }
@@ -128,7 +128,9 @@
     border-radius: 0;
     background: transparent;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
   }
 
   .lane-count.over {
@@ -148,8 +150,8 @@
     display: flex;
     justify-content: center;
     padding: 18px 0;
-    border-bottom: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--divider);
     color: var(--muted-fg);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 </style>

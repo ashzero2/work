@@ -50,12 +50,14 @@
 {#if creating}<TaskCreateDialog {columnId} onclose={() => creating = false} />{/if}
 
 <style>
-  .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px 28px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
-  .overview div { display: flex; align-items: baseline; gap: 9px; padding: 10px 14px; border-right: 1px solid var(--border); }
-  .overview div:last-child { border: 0; } .overview strong { font-size: 17px; font-variant-numeric: tabular-nums; } .overview span { font-size: 12px; color: var(--muted-fg); }
-  .tools, .filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .tools { justify-content: space-between; padding: 0 28px 14px; }
-  select { appearance: none; min-height: 36px; padding: 0 28px 0 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 9px center; color: var(--fg); font: inherit; font-size: 13px; }
-  .tasks-body { padding: 0 28px 28px; }
+  .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px var(--gutter); border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }
+  .overview div { display: flex; align-items: baseline; gap: 9px; padding: 9px 14px; border-right: 1px solid var(--divider); }
+  .overview div:last-child { border-right: 0; }
+  .overview strong { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: var(--weight-medium); letter-spacing: var(--tracking-tight); }
+  .overview span { font-size: var(--text-sm); color: var(--muted-fg); }
+  .tools, .filters { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+  .tools { justify-content: space-between; padding: 0 var(--gutter) 14px; }
+  select { appearance: none; min-height: 32px; padding: 0 28px 0 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 9px center; color: var(--fg); font: inherit; font-size: var(--text-base); }
+  .tasks-body { padding: 0 var(--gutter) 28px; }
   @media (max-width: 700px) { .overview { margin-inline: 16px; } .overview div { flex-direction: column; gap: 2px; padding: 10px; } .tools { padding-inline: 16px; } .tasks-body { padding-inline: 16px; } }
 </style>

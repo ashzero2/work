@@ -2,7 +2,7 @@
   import { Check } from '@lucide/svelte';
 
   import { theme } from '$lib/stores/theme.svelte';
-  import { availableModes, themeModeLabel } from '$lib/theme';
+  import { availableModes, availablePalettes, paletteLabel, themeModeLabel } from '$lib/theme';
   import DropdownMenu from '../DropdownMenu.svelte';
 
   const modes = $derived(availableModes(theme.state.macos));
@@ -33,6 +33,34 @@
               {#if mode === theme.state.mode}<Check size={14} />{/if}
             </span>
             {themeModeLabel[mode]}
+          </button>
+        {/each}
+      {/snippet}
+    </DropdownMenu>
+  </div>
+
+  <div class="setting-row">
+    <span class="setting-main">
+      <span class="setting-label">Palette</span>
+      <span class="setting-hint">Warm paper, or a cool near-white neutral.</span>
+    </span>
+    <DropdownMenu align="end">
+      {#snippet trigger({ toggle })}
+        <button class="btn" onclick={toggle}>{paletteLabel[theme.state.palette]}</button>
+      {/snippet}
+      {#snippet content({ close })}
+        {#each availablePalettes as palette (palette)}
+          <button
+            class="menu-item"
+            onclick={() => {
+              void theme.setPalette(palette);
+              close();
+            }}
+          >
+            <span class="setting-tick">
+              {#if palette === theme.state.palette}<Check size={14} />{/if}
+            </span>
+            {paletteLabel[palette]}
           </button>
         {/each}
       {/snippet}

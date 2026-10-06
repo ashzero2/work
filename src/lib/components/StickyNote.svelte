@@ -68,7 +68,7 @@
     width: 224px;
     min-height: 140px;
     padding: 12px;
-    border-radius: 14px;
+    border-radius: var(--radius-lg);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.5),
       0 10px 24px rgba(38, 32, 24, 0.2);
@@ -92,9 +92,9 @@
   .title {
     flex: 1;
     min-width: 0;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.35;
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
     overflow-wrap: anywhere;
   }
 
@@ -115,16 +115,17 @@
 
   .tag {
     padding: 2px 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: rgba(42, 36, 24, 0.1);
     color: #4a4130;
-    font-size: 11px;
-    font-weight: 500;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
   }
 
   .date {
     margin-top: auto;
     color: #5a5040;
-    font-size: 11px;
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
   }
 </style>

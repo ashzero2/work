@@ -22,7 +22,7 @@
     border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-variant-numeric: tabular-nums;
     cursor: pointer;
   }
@@ -41,6 +41,6 @@
   }
 
   .clock {
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
   }
 </style>

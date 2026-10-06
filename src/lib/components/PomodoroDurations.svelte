@@ -66,7 +66,7 @@
 
   span {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   input {
@@ -76,7 +76,7 @@
     border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
     font-variant-numeric: tabular-nums;
   }
 

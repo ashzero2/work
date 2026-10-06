@@ -51,15 +51,15 @@
   }
 
   .title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
   }
 
   .description {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
   }
 
   .action {

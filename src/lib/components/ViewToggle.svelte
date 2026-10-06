@@ -45,8 +45,8 @@
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--muted-fg);
-    font-size: 13px;
-    font-weight: 500;
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
     cursor: pointer;
   }
 
@@ -57,6 +57,6 @@
   .segment.active {
     background: color-mix(in srgb, var(--accent) 14%, var(--panel));
     color: var(--fg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-xs);
   }
 </style>

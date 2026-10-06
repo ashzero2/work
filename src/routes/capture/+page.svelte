@@ -72,11 +72,11 @@
     flex-shrink: 0;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
   }
 
-  label { font-size: 12px; font-weight: 600; }
+  label { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
   .btn { align-self: flex-start; min-height: 32px; }
 
   input {
@@ -86,12 +86,12 @@
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .hint {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 </style>

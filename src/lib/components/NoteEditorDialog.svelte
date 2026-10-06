@@ -148,8 +148,8 @@
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
   }
 
   textarea {
@@ -162,7 +162,7 @@
     background: var(--bg);
     color: var(--fg);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 13px;
+    font-size: var(--text-base);
     line-height: 1.55;
   }
 
@@ -175,7 +175,7 @@
     min-height: 240px;
     padding: 11px;
     color: var(--muted-fg);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   footer {
