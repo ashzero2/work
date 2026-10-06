@@ -146,18 +146,32 @@ class WorkspaceStore {
     await this.persist(() => api.moveTaskToEnd(taskId, columnId));
   }
 
-  async createColumn(name: string): Promise<void> {
+  /// Both return whether the write landed, so the dialog can stay open on
+  /// failure instead of silently discarding what was typed.
+  async createColumn(name: string): Promise<boolean> {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    await api.createColumn({ name: trimmed, color: null, wipLimit: null });
-    await this.refresh();
+    if (!trimmed) return false;
+    try {
+      await api.createColumn({ name: trimmed, color: null, wipLimit: null });
+      await this.refresh();
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
   }
 
-  async renameColumn(id: number, name: string): Promise<void> {
+  async renameColumn(id: number, name: string): Promise<boolean> {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    await api.renameColumn(id, trimmed);
-    await this.refresh();
+    if (!trimmed) return false;
+    try {
+      await api.renameColumn(id, trimmed);
+      await this.refresh();
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
   }
 
   async deleteColumn(id: number): Promise<void> {

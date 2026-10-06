@@ -4,7 +4,6 @@
 
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import FocusView from '$lib/components/FocusView.svelte';
-  import NoteEditorDialog from '$lib/components/NoteEditorDialog.svelte';
   import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
   import RemindersView from '$lib/components/RemindersView.svelte';
@@ -63,12 +62,16 @@
   }
 
   async function submitPrompt(value: string): Promise<void> {
-    if (prompt?.mode === 'rename') {
-      await workspace.renameColumn(prompt.column.id, value);
-    } else {
-      await workspace.createColumn(value);
-    }
-    prompt = null;
+    const current = prompt;
+    if (current === null) return;
+
+    const saved =
+      current.mode === 'rename'
+        ? await workspace.renameColumn(current.column.id, value)
+        : await workspace.createColumn(value);
+
+    // Keep the dialog open when the write failed, so the name isn't lost.
+    if (saved) prompt = null;
   }
 </script>
 
@@ -106,13 +109,6 @@
       oncancel={() => (prompt = null)}
     />
   {/if}
-
-  {#key notes.selectedId}
-    {@const selectedNote = notes.selected}
-    {#if selectedNote}
-      <NoteEditorDialog note={selectedNote} onclose={() => notes.closeEditor()} />
-    {/if}
-  {/key}
 </div>
 
 <style>

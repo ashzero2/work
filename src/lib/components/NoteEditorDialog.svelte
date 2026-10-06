@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Trash2 } from '@lucide/svelte';
 
+  import { noteDrafts } from '$lib/note-drafts';
   import { notes } from '$lib/stores/notes.svelte';
   import { toast } from '$lib/stores/toast.svelte';
   import type { NoteCard } from '$lib/types';
@@ -13,18 +14,26 @@
 
   let { note, onclose }: Props = $props();
 
+  // A draft left by an earlier visit is offered back, so closing the dialog by
+  // accident doesn't lose what was typed.
+  // svelte-ignore state_referenced_locally — the dialog is keyed per note, so this seeds once
+  const draft = noteDrafts.get(note.id);
+
   // svelte-ignore state_referenced_locally — the dialog is keyed per note, so these seed once
-  let title = $state(note.title);
-  let body = $state('');
+  let title = $state(draft?.title ?? note.title);
   // svelte-ignore state_referenced_locally
-  let tags = $state<string[]>([...note.tags]);
-  let loading = $state(true);
+  let body = $state(draft?.body ?? '');
+  // svelte-ignore state_referenced_locally
+  let tags = $state<string[]>([...(draft?.tags ?? note.tags)]);
+  let loading = $state(draft === undefined);
   let saving = $state(false);
+  let dirty = $state(draft !== undefined);
 
   let dialog: HTMLDivElement | null = null;
   let titleInput: HTMLInputElement | null = null;
 
   $effect(() => {
+    if (draft !== undefined) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -52,6 +61,8 @@
     saving = true;
     try {
       await notes.saveNote(note.id, trimmed, body, tags);
+      noteDrafts.delete(note.id);
+      dirty = false;
       onclose();
     } catch {
       // saveNote surfaces the error; keep the dialog open so nothing is lost
@@ -60,13 +71,26 @@
     }
   }
 
+  /// Stashes an unsaved edit before closing, so a stray click outside the dialog
+  /// or an Escape doesn't discard it.
+  function close(): void {
+    if (dirty && !saving) noteDrafts.set(note.id, { title, body, tags: [...tags] });
+    onclose();
+  }
+
+  function remove(): void {
+    noteDrafts.delete(note.id);
+    void notes.deleteNote(note.id);
+    onclose();
+  }
+
   function onKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') onclose();
+    if (event.key === 'Escape') close();
     if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) void save();
   }
 
   function onPointerDown(event: PointerEvent): void {
-    if (dialog && !dialog.contains(event.target as Node)) onclose();
+    if (dialog && !dialog.contains(event.target as Node)) close();
   }
 </script>
 
@@ -74,12 +98,13 @@
 
 <div class="backdrop">
   <div class="dialog" bind:this={dialog} role="dialog" aria-modal="true" aria-label={note.title}>
-    <label class="sr-only" for="note-title">Note title</label>
+    <label class="sr-only" for="note-dialog-title">Note title</label>
     <input
-      id="note-title"
+      id="note-dialog-title"
       class="title"
       bind:this={titleInput}
       bind:value={title}
+      oninput={() => (dirty = true)}
       placeholder="Note title"
     />
 
@@ -88,26 +113,27 @@
     {:else}
       <textarea
         bind:value={body}
+        oninput={() => (dirty = true)}
         placeholder="Write in markdown…"
         aria-label="Note body"
         spellcheck="false"
       ></textarea>
     {/if}
 
-    <TagInput {tags} onchange={(next) => (tags = next)} />
+    <TagInput
+      {tags}
+      onchange={(next) => {
+        tags = next;
+        dirty = true;
+      }}
+    />
 
     <footer>
-      <button
-        class="btn danger"
-        onclick={() => {
-          void notes.deleteNote(note.id);
-          onclose();
-        }}
-      >
+      <button class="btn danger" onclick={remove}>
         <Trash2 size={14} /> Delete
       </button>
       <div class="spacer"></div>
-      <button class="btn" onclick={onclose}>Cancel</button>
+      <button class="btn" onclick={close}>Cancel</button>
       <button class="btn btn-primary" onclick={() => void save()} disabled={saving || !title.trim()}>
         Save
       </button>

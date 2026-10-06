@@ -1,16 +1,16 @@
 <script lang="ts">
   import { FileText, LayoutGrid, Move, Plus, Search } from '@lucide/svelte';
   import { notes } from '$lib/stores/notes.svelte';
+  import NoteEditorDialog from './NoteEditorDialog.svelte';
   import NoteInspector from './NoteInspector.svelte';
   import Corkboard from './Corkboard.svelte';
   import LoadingState from './LoadingState.svelte';
-  let selectedId = $state<number | null>(null);
+
   let spatial = $state(false);
-  const selected = $derived(notes.visible.find(note => note.id === selectedId) ?? null);
+  const selected = $derived(notes.selected);
 
   async function createNote(): Promise<void> {
-    const id = await notes.createNote(false);
-    if (id !== null) selectedId = id;
+    await notes.createNote(true);
   }
 </script>
 <section class="workspace-view">
@@ -23,7 +23,7 @@
     {#if spatial}<Corkboard />{:else if notes.loading}<LoadingState label="Loading notes…" />{:else}
       <div class="notes-layout">
         <nav class="note-list" aria-label="Notes">
-        {#each notes.visible as note (note.id)}<button class="note" class:selected={selected?.id === note.id} aria-current={selected?.id === note.id ? 'true' : undefined} onclick={() => selectedId = note.id}>
+        {#each notes.visible as note (note.id)}<button class="note" class:selected={selected?.id === note.id} aria-current={selected?.id === note.id ? 'true' : undefined} onclick={() => notes.open(note.id)}>
           <h2>{note.title}</h2><p>{note.preview || 'No text yet'}</p>
           <footer><span class="tags">{#each note.tags as tag}<span>#{tag}</span>{/each}{#if !note.tags.length}<span>No tags</span>{/if}</span><time>{new Date(note.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</time></footer>
         </button>{/each}
@@ -37,6 +37,16 @@
     {/if}
   </div>
 </section>
+
+<!-- The index edits a note in place; the corkboard, which has no room for that,
+     opens the same note as a modal. Both read the one selection in the store, so
+     they can never disagree about which note is open. -->
+{#if spatial && selected}
+  {#key selected.id}
+    <NoteEditorDialog note={selected} onclose={() => notes.closeEditor()} />
+  {/key}
+{/if}
+
 <style>
   .notes-body { display: flex; flex-direction: column; overflow: hidden; }
   .view-tools { display: flex; flex-shrink: 0; justify-content: flex-end; margin-bottom: 14px; }
