@@ -77,7 +77,7 @@ pub fn install(app: &App) -> std::result::Result<(), Box<dyn std::error::Error>>
 /// bound before the old is released, so a refusal leaves the previous key working
 /// rather than leaving the user with nothing.
 pub fn rebind(app: &AppHandle, shortcut: &str) -> std::result::Result<(), String> {
-    let mut bound = BOUND.lock().unwrap();
+    let mut bound = BOUND.lock().unwrap_or_else(|poison| poison.into_inner());
 
     if bound.as_deref() != Some(shortcut) {
         app.global_shortcut()
@@ -114,12 +114,28 @@ pub fn preference(app: &AppHandle) -> String {
         .unwrap_or_else(|| DEFAULT_SHORTCUT.to_string())
 }
 
-pub fn status(app: &AppHandle) -> ShortcutStatus {
+/// What is bound right now, without touching the database.
+fn bound_shortcut() -> Option<String> {
+    BOUND
+        .lock()
+        .map(|bound| bound.clone())
+        .unwrap_or(None)
+}
+
+/// Builds the status from values already in hand. Kept separate from `status`
+/// so a caller that already holds the connection lock can report its result
+/// without re-locking it — `std::sync::Mutex` is not reentrant, and taking it
+/// twice on one thread deadlocks.
+fn status_from(shortcut: Option<String>, preferred: &str) -> ShortcutStatus {
     ShortcutStatus {
-        shortcut: BOUND.lock().unwrap().clone(),
-        preferred: preference(app),
+        shortcut,
+        preferred: preferred.to_string(),
         default: DEFAULT_SHORTCUT.to_string(),
     }
+}
+
+pub fn status(app: &AppHandle) -> ShortcutStatus {
+    status_from(bound_shortcut(), &preference(app))
 }
 
 /// Rebinds and remembers. A refused combination is reported and *not* stored, so
@@ -139,7 +155,7 @@ pub fn set_preference(
     })?;
 
     settings::set(conn, SHORTCUT_KEY, shortcut)?;
-    Ok(status(app))
+    Ok(status_from(bound_shortcut(), shortcut))
 }
 
 pub fn reveal(app: &AppHandle) {
@@ -153,5 +169,25 @@ pub fn reveal(app: &AppHandle) {
 pub fn hide(app: &AppHandle) {
     if let Some(window) = app.get_webview_window(LABEL) {
         let _ = window.hide();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn status_reports_the_bound_preferred_and_default() {
+        let status = status_from(Some("Ctrl+K".into()), "Ctrl+Shift+K");
+        assert_eq!(status.shortcut.as_deref(), Some("Ctrl+K"));
+        assert_eq!(status.preferred, "Ctrl+Shift+K");
+        assert_eq!(status.default, DEFAULT_SHORTCUT);
+    }
+
+    #[test]
+    fn status_reports_nothing_bound_without_losing_the_preference() {
+        let status = status_from(None, "Ctrl+Shift+K");
+        assert!(status.shortcut.is_none());
+        assert_eq!(status.preferred, "Ctrl+Shift+K");
     }
 }
