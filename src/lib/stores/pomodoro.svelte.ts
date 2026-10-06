@@ -39,6 +39,7 @@ class PomodoroStore {
   private now = $state(Date.now());
   private ticker: number | undefined;
   private advancing = false;
+  private starting = false;
 
   get running(): boolean {
     return this.session !== null;
@@ -78,6 +79,10 @@ class PomodoroStore {
         this.session = resumed;
         this.taskId = resumed.taskId;
         this.startTicking();
+      } else {
+        // A session closed while the window was away must not keep ticking here.
+        this.session = null;
+        this.stopTicking();
       }
 
       await this.refreshHistory();
@@ -89,8 +94,15 @@ class PomodoroStore {
   }
 
   async start(): Promise<void> {
-    if (this.session !== null) return;
-    await this.begin(await api.nextPhase());
+    // `session` is only set once the backend has answered, so a second click
+    // before then would otherwise start a second session.
+    if (this.session !== null || this.starting) return;
+    this.starting = true;
+    try {
+      await this.begin();
+    } finally {
+      this.starting = false;
+    }
   }
 
   async skip(): Promise<void> {
@@ -134,9 +146,12 @@ class PomodoroStore {
     }
   }
 
-  private async begin(kind: SessionKind): Promise<void> {
+  private async begin(kind?: SessionKind): Promise<void> {
     try {
-      const session = await api.startSession(kind, this.taskId, this.secondsFor(kind));
+      // Resolved inside the try, so a failure to read the next phase is reported
+      // rather than rejecting out of `start` and vanishing into a void call.
+      const next = kind ?? (await api.nextPhase());
+      const session = await api.startSession(next, this.taskId, this.secondsFor(next));
       this.session = session;
       this.now = Date.now();
       this.startTicking();
@@ -154,7 +169,7 @@ class PomodoroStore {
 
     try {
       await api.finishSession(id, completed);
-      await this.begin(await api.nextPhase());
+      await this.begin();
     } catch (error) {
       toast.show(String(error));
     } finally {
