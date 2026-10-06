@@ -82,7 +82,7 @@
     <Sidebar oncommand={() => paletteOpen = true} />
     <main class="content">
       {#if navigation.section === 'tasks'}
-        <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} oncommand={() => paletteOpen = true} />
+        <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} />
       {:else if navigation.section === 'notes'}
         <NotesView />
       {:else if navigation.section === 'focus'}

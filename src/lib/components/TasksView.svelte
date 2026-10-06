@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Command, Plus } from '@lucide/svelte';
+  import { Plus, Zap } from '@lucide/svelte';
+  import { showCaptureWindow } from '$lib/api';
   import { workspace } from '$lib/stores/workspace.svelte';
   import { matchesTask, type TaskStatusFilter, type TaskDueFilter } from '$lib/task-filter';
   import type { Column, Priority } from '$lib/types';
@@ -9,7 +10,7 @@
   import TaskEditDialog from './TaskEditDialog.svelte';
   import ViewToggle from './ViewToggle.svelte';
 
-  let { onaddcolumn, onrename, oncommand }: { onaddcolumn: () => void; onrename: (column: Column) => void; oncommand: () => void } = $props();
+  let { onaddcolumn, onrename }: { onaddcolumn: () => void; onrename: (column: Column) => void } = $props();
   let status = $state<TaskStatusFilter>('all');
   let priority = $state<Priority | 'all'>('all');
   let due = $state<TaskDueFilter>('all');
@@ -31,7 +32,7 @@
 <section class="workspace-view">
   <header class="workspace-head" data-tauri-drag-region>
     <div><h1>Tasks</h1><p>{workspace.openCount} open · {workspace.doneCount} done · Local workspace</p></div>
-    <div class="head-actions"><button class="btn" onclick={oncommand}><Command size={14} /> Command menu</button><button class="btn btn-primary" onclick={() => workspace.columns.length ? addTask() : onaddcolumn()}><Plus size={15} /> New task</button></div>
+    <div class="head-actions"><button class="btn bolt" title="Quick capture" aria-label="Quick capture" onclick={() => void showCaptureWindow()}><Zap size={16} /></button><button class="btn btn-primary" onclick={() => workspace.columns.length ? addTask() : onaddcolumn()}><Plus size={15} /> New task</button></div>
   </header>
   <div class="overview" aria-label="Task overview">
     <div><strong>{workspace.openCount}</strong><span>Open tasks</span></div>
@@ -54,6 +55,9 @@
 {#if editing}<TaskEditDialog task={editing} onclose={() => (editingId = null)} />{/if}
 
 <style>
+  /* Icon-only, but sized and bordered like its neighbours so the header row reads
+     as one set of controls. */
+  .bolt { width: 36px; min-height: 36px; padding: 0; }
   .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px var(--gutter); border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }
   .overview div { display: flex; align-items: baseline; gap: 9px; padding: 9px 14px; border-right: 1px solid var(--divider); }
   .overview div:last-child { border-right: 0; }
