@@ -400,7 +400,10 @@ mod tests {
         assert_eq!(listed[0].title, "Recoverable");
         assert_eq!(notes_index::search(&conn, "recoverable").unwrap().len(), 1);
         // The body was re-read from disk, not invented.
-        assert_eq!(body(&conn, dir.path(), listed[0].id).unwrap().trim(), "recoverable body text");
+        assert_eq!(
+            body(&conn, dir.path(), listed[0].id).unwrap().trim(),
+            "recoverable body text"
+        );
     }
 
     #[test]

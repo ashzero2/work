@@ -116,10 +116,7 @@ pub fn preference(app: &AppHandle) -> String {
 
 /// What is bound right now, without touching the database.
 fn bound_shortcut() -> Option<String> {
-    BOUND
-        .lock()
-        .map(|bound| bound.clone())
-        .unwrap_or(None)
+    BOUND.lock().map(|bound| bound.clone()).unwrap_or(None)
 }
 
 /// Builds the status from values already in hand. Kept separate from `status`

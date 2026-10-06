@@ -35,5 +35,8 @@ pub fn list_tags(state: State<'_, Mutex<Connection>>) -> Result<Vec<TagSummary>>
 
 #[tauri::command]
 pub fn delete_tag(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    tags::delete(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id)
+    tags::delete(
+        &state.lock().unwrap_or_else(|poison| poison.into_inner()),
+        id,
+    )
 }

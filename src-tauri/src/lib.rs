@@ -35,7 +35,8 @@ pub fn run() {
 
             // The note files are the source of truth, so if the index is ever lost
             // it is rebuilt from them rather than left empty.
-            if let Err(error) = storage::notes::recover_if_empty(&conn, &storage::paths::notes_dir())
+            if let Err(error) =
+                storage::notes::recover_if_empty(&conn, &storage::paths::notes_dir())
             {
                 eprintln!("note index recovery failed: {error}");
             }

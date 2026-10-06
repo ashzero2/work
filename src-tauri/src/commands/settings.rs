@@ -8,7 +8,10 @@ use crate::storage::settings;
 
 #[tauri::command]
 pub fn get_setting(key: String, state: State<'_, Mutex<Connection>>) -> Result<Option<String>> {
-    settings::get(&state.lock().unwrap_or_else(|poison| poison.into_inner()), &key)
+    settings::get(
+        &state.lock().unwrap_or_else(|poison| poison.into_inner()),
+        &key,
+    )
 }
 
 /// Writes a preference and tells every window about it.

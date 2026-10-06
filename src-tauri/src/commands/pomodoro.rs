@@ -63,7 +63,9 @@ pub fn next_phase(state: State<'_, Mutex<Connection>>) -> Result<SessionKind> {
 
 #[tauri::command]
 pub fn cycle_position(state: State<'_, Mutex<Connection>>) -> Result<i64> {
-    pomodoro::work_sessions_since_long_break(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
+    pomodoro::work_sessions_since_long_break(
+        &state.lock().unwrap_or_else(|poison| poison.into_inner()),
+    )
 }
 
 #[tauri::command]
@@ -71,7 +73,10 @@ pub fn recent_sessions(
     limit: i64,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<Vec<PomodoroSession>> {
-    pomodoro::recent(&state.lock().unwrap_or_else(|poison| poison.into_inner()), limit)
+    pomodoro::recent(
+        &state.lock().unwrap_or_else(|poison| poison.into_inner()),
+        limit,
+    )
 }
 
 #[tauri::command]

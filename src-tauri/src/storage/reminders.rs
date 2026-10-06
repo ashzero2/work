@@ -200,7 +200,9 @@ fn row_to_reminder(row: &Row) -> rusqlite::Result<Reminder> {
         task_id: row.get(2)?,
         trigger_at: parse_rfc3339(&trigger_at)?,
         status: ReminderStatus::from_db_str(&status).unwrap_or(ReminderStatus::Pending),
-        snoozed_until: snoozed_until.map(|value| parse_rfc3339(&value)).transpose()?,
+        snoozed_until: snoozed_until
+            .map(|value| parse_rfc3339(&value))
+            .transpose()?,
         system_notification_tag: row.get(6)?,
         session_id: row.get(7)?,
     })
