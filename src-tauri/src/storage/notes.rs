@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::Path;
 
 use chrono::Utc;
@@ -54,13 +55,15 @@ pub fn create(conn: &Connection, notes_dir: &Path, new_note: NewNote) -> Result<
         created_at: meta.created_at,
         updated_at: meta.updated_at,
     };
-    notes_fs::write(
-        &notes_fs::note_path(notes_dir, &file_name),
-        &front_matter,
-        "",
-    )?;
+    let path = notes_fs::note_path(notes_dir, &file_name);
+    notes_fs::write(&path, &front_matter, "")?;
     notes_index::update_file_path(&tx, meta.id, &file_name)?;
-    tx.commit()?;
+    if let Err(error) = tx.commit() {
+        // The row is gone but the file was already written, so drop it rather
+        // than leave an orphan note behind on a failed create.
+        let _ = notes_fs::remove(&path);
+        return Err(error.into());
+    }
 
     notes_index::get(conn, meta.id)?.ok_or(AppError::NotFound)
 }
@@ -73,8 +76,10 @@ pub fn body(conn: &Connection, notes_dir: &Path, id: i64) -> Result<String> {
     Ok(body)
 }
 
-/// Rewrites the note's file and index together, so the markdown frontmatter
-/// and the queryable row can't drift apart.
+/// Rewrites the note's file and index together, so the markdown frontmatter and
+/// the queryable row can't drift apart. The index writes share one transaction,
+/// and the file — the source of truth — is written before that transaction
+/// commits, so a failed write leaves the row untouched.
 pub fn save(
     conn: &Connection,
     notes_dir: &Path,
@@ -89,8 +94,10 @@ pub fn save(
     }
 
     let meta = notes_index::get(conn, id)?.ok_or(AppError::NotFound)?;
-    tags::set_for_entity(conn, EntityKind::Note, id, tag_names)?;
-    let names = tags::names_for_entity(conn, EntityKind::Note, id)?;
+
+    let tx = conn.unchecked_transaction()?;
+    tags::set_for_entity(&tx, EntityKind::Note, id, tag_names)?;
+    let names = tags::names_for_entity(&tx, EntityKind::Note, id)?;
 
     let front_matter = NoteFrontMatter {
         id,
@@ -106,8 +113,9 @@ pub fn save(
         body,
     )?;
 
-    notes_index::update_title(conn, id, trimmed)?;
-    notes_index::sync_fts(conn, id, trimmed, body)?;
+    notes_index::update_title(&tx, id, trimmed)?;
+    notes_index::sync_fts(&tx, id, trimmed, body)?;
+    tx.commit()?;
 
     notes_index::get(conn, id)?.ok_or(AppError::NotFound)
 }
@@ -115,12 +123,81 @@ pub fn save(
 pub fn delete(conn: &Connection, notes_dir: &Path, id: i64) -> Result<()> {
     let meta = notes_index::get(conn, id)?.ok_or(AppError::NotFound)?;
 
-    tags::set_for_entity(conn, EntityKind::Note, id, &[])?;
-    notes_index::delete(conn, id)?;
+    let tx = conn.unchecked_transaction()?;
+    tags::set_for_entity(&tx, EntityKind::Note, id, &[])?;
+    notes_index::delete(&tx, id)?;
+    tx.commit()?;
+
+    // After the row is gone: a failure here leaves an unreferenced file, which is
+    // recoverable, rather than a row pointing at content that no longer exists.
     if !meta.file_path.is_empty() {
         notes_fs::remove(&notes_fs::note_path(notes_dir, &meta.file_path))?;
     }
     Ok(())
+}
+
+/// Rebuilds the index from the note files, which are the source of truth: every
+/// `.md` in the notes directory is re-read and its row and search text brought
+/// back into line. A row whose file no longer exists is left alone rather than
+/// deleted — a missing file is more likely a sync or mount hiccup than an intent
+/// to destroy the note.
+pub fn rescan(conn: &Connection, notes_dir: &Path) -> Result<usize> {
+    if !notes_dir.is_dir() {
+        return Ok(0);
+    }
+
+    let tx = conn.unchecked_transaction()?;
+    let mut processed = 0usize;
+
+    for entry in fs::read_dir(notes_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+
+        // A file we can't parse is left exactly as it is rather than guessed at.
+        let Ok((front_matter, body)) = notes_fs::read(&path) else {
+            continue;
+        };
+        let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+
+        if notes_index::get(&tx, front_matter.id)?.is_some() {
+            notes_index::update_file_path(&tx, front_matter.id, file_name)?;
+            notes_index::update_title(&tx, front_matter.id, &front_matter.title)?;
+            notes_index::sync_fts(&tx, front_matter.id, &front_matter.title, &body)?;
+        } else {
+            notes_index::create(
+                &tx,
+                notes_index::NewNoteMeta {
+                    title: front_matter.title.clone(),
+                    file_path: file_name.to_string(),
+                    linked_task_id: front_matter.linked_task_id,
+                    color: PALETTE[(front_matter.id.unsigned_abs() as usize) % PALETTE.len()]
+                        .to_string(),
+                    rotation_deg: rotation(front_matter.id),
+                    pos_x: Some(scatter(processed, front_matter.id, 0)),
+                    pos_y: Some(scatter(processed, front_matter.id, 1)),
+                },
+                &body,
+            )?;
+        }
+        processed += 1;
+    }
+
+    tx.commit()?;
+    Ok(processed)
+}
+
+/// Rebuilds the index only when it has been lost — the promise that a note's
+/// markdown can regenerate it. Deliberately conditional: rescanning on every
+/// launch would read every note body at startup, undoing the lazy-body design.
+pub fn recover_if_empty(conn: &Connection, notes_dir: &Path) -> Result<usize> {
+    if !notes_index::list(conn)?.is_empty() {
+        return Ok(0);
+    }
+    rescan(conn, notes_dir)
 }
 
 fn rotation(seed: i64) -> f64 {
@@ -295,5 +372,43 @@ mod tests {
     fn slug_falls_back_and_strips_punctuation() {
         assert_eq!(slug("Meeting — Q3 / kickoff!"), "meeting-q3-kickoff");
         assert_eq!(slug("!!!"), "note");
+    }
+
+    #[test]
+    fn rescan_restores_a_lost_index_from_disk() {
+        let conn = db::open_in_memory().unwrap();
+        let dir = tempdir().unwrap();
+        let note = create_note(&conn, dir.path(), "Recoverable");
+        save(
+            &conn,
+            dir.path(),
+            note.id,
+            "Recoverable",
+            "recoverable body text",
+            &["work".into()],
+        )
+        .unwrap();
+
+        // The file survives, the index does not.
+        notes_index::delete(&conn, note.id).unwrap();
+        assert!(notes_index::list(&conn).unwrap().is_empty());
+
+        assert_eq!(rescan(&conn, dir.path()).unwrap(), 1);
+
+        let listed = notes_index::list(&conn).unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].title, "Recoverable");
+        assert_eq!(notes_index::search(&conn, "recoverable").unwrap().len(), 1);
+        // The body was re-read from disk, not invented.
+        assert_eq!(body(&conn, dir.path(), listed[0].id).unwrap().trim(), "recoverable body text");
+    }
+
+    #[test]
+    fn recover_if_empty_leaves_a_populated_index_alone() {
+        let conn = db::open_in_memory().unwrap();
+        let dir = tempdir().unwrap();
+        create_note(&conn, dir.path(), "Existing");
+
+        assert_eq!(recover_if_empty(&conn, dir.path()).unwrap(), 0);
     }
 }

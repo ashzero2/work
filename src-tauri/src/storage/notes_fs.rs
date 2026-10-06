@@ -21,7 +21,9 @@ pub fn read(path: &Path) -> Result<(NoteFrontMatter, String)> {
 }
 
 /// Writes a note file as `---\n<yaml frontmatter>\n---\n<body>` — the
-/// on-disk source of truth for the note.
+/// on-disk source of truth for the note. Written to a sibling temp file and
+/// renamed into place: a rename is atomic on the same filesystem, so a crash or
+/// power loss mid-write can't leave a truncated note behind.
 pub fn write(path: &Path, front_matter: &NoteFrontMatter, body: &str) -> Result<()> {
     let yaml =
         serde_yaml_ng::to_string(front_matter).map_err(|e| AppError::FrontMatter(e.to_string()))?;
@@ -29,8 +31,17 @@ pub fn write(path: &Path, front_matter: &NoteFrontMatter, body: &str) -> Result<
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(path, contents)?;
-    Ok(())
+
+    let mut temp = path.as_os_str().to_owned();
+    temp.push(".tmp");
+    let temp = PathBuf::from(temp);
+
+    fs::write(&temp, contents)?;
+    fs::rename(&temp, path).map_err(|error| {
+        // Never leave the scratch file behind if the swap fails.
+        let _ = fs::remove_file(&temp);
+        error.into()
+    })
 }
 
 /// Removes a note file, treating an already-missing file as success.
@@ -85,5 +96,30 @@ mod tests {
         remove(&path).unwrap();
         assert!(!path.exists());
         remove(&path).unwrap();
+    }
+
+    #[test]
+    fn write_replaces_in_place_and_leaves_no_scratch_file() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("note.md");
+        let front = |title: &str| NoteFrontMatter {
+            id: 1,
+            title: title.into(),
+            tags: Vec::new(),
+            linked_task_id: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        write(&path, &front("First"), "one").unwrap();
+        write(&path, &front("Second"), "two").unwrap();
+
+        let (matter, body) = read(&path).unwrap();
+        assert_eq!(matter.title, "Second");
+        assert_eq!(body.trim(), "two");
+        assert!(
+            !dir.path().join("note.md.tmp").exists(),
+            "the scratch file should have been renamed away"
+        );
     }
 }
