@@ -198,18 +198,27 @@ fn row_to_reminder(row: &Row) -> rusqlite::Result<Reminder> {
         id: row.get(0)?,
         kind: ReminderKind::from_db_str(&kind).unwrap_or(ReminderKind::Custom),
         task_id: row.get(2)?,
-        trigger_at: parse_rfc3339(&trigger_at),
+        trigger_at: parse_rfc3339(&trigger_at)?,
         status: ReminderStatus::from_db_str(&status).unwrap_or(ReminderStatus::Pending),
-        snoozed_until: snoozed_until.map(|value| parse_rfc3339(&value)),
+        snoozed_until: snoozed_until.map(|value| parse_rfc3339(&value)).transpose()?,
         system_notification_tag: row.get(6)?,
         session_id: row.get(7)?,
     })
 }
 
-fn parse_rfc3339(value: &str) -> DateTime<Utc> {
+/// A stored timestamp that no longer parses is reported as a row error rather
+/// than panicking: a hand-edited or partially-written row must not be able to
+/// abort the app.
+fn parse_rfc3339(value: &str) -> rusqlite::Result<DateTime<Utc>> {
     DateTime::parse_from_rfc3339(value)
-        .expect("timestamps written by this crate are always valid RFC3339")
-        .with_timezone(&Utc)
+        .map(|parsed| parsed.with_timezone(&Utc))
+        .map_err(|error| {
+            rusqlite::Error::FromSqlConversionFailure(
+                0,
+                rusqlite::types::Type::Text,
+                Box::new(error),
+            )
+        })
 }
 
 #[cfg(test)]

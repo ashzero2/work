@@ -40,7 +40,7 @@ pub fn capture_task(
     }
 
     {
-        let conn = state.lock().unwrap();
+        let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
         let column = columns::ensure_default(&conn)?;
         tasks::create(
             &conn,
@@ -94,7 +94,7 @@ pub fn set_settings_pane(
     state: State<'_, Mutex<Connection>>,
 ) -> Result<()> {
     {
-        let conn = state.lock().unwrap();
+        let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
         crate::storage::settings::set(&conn, "settings.pane", &pane)?;
     }
 
@@ -118,5 +118,5 @@ pub fn set_quick_capture_shortcut(
     app: AppHandle,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<crate::quick_capture::ShortcutStatus> {
-    crate::quick_capture::set_preference(&app, &state.lock().unwrap(), &shortcut)
+    crate::quick_capture::set_preference(&app, &state.lock().unwrap_or_else(|poison| poison.into_inner()), &shortcut)
 }

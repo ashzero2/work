@@ -154,13 +154,24 @@ fn row_to_note_meta(row: &Row) -> rusqlite::Result<NoteMeta> {
         rotation_deg: row.get(5)?,
         pos_x: row.get(6)?,
         pos_y: row.get(7)?,
-        created_at: chrono::DateTime::parse_from_rfc3339(&created_at)
-            .unwrap()
-            .with_timezone(&Utc),
-        updated_at: chrono::DateTime::parse_from_rfc3339(&updated_at)
-            .unwrap()
-            .with_timezone(&Utc),
+        created_at: parse_rfc3339(&created_at)?,
+        updated_at: parse_rfc3339(&updated_at)?,
     })
+}
+
+/// A stored timestamp that no longer parses is reported as a row error rather
+/// than panicking: a hand-edited or partially-written row must not be able to
+/// abort the app.
+fn parse_rfc3339(value: &str) -> rusqlite::Result<chrono::DateTime<Utc>> {
+    chrono::DateTime::parse_from_rfc3339(value)
+        .map(|parsed| parsed.with_timezone(&Utc))
+        .map_err(|error| {
+            rusqlite::Error::FromSqlConversionFailure(
+                0,
+                rusqlite::types::Type::Text,
+                Box::new(error),
+            )
+        })
 }
 
 #[cfg(test)]

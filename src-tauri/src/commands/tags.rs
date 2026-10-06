@@ -20,7 +20,7 @@ pub struct TagSummary {
 
 #[tauri::command]
 pub fn list_tags(state: State<'_, Mutex<Connection>>) -> Result<Vec<TagSummary>> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let summaries = tags::list_with_counts(&conn, EntityKind::Note)?
         .into_iter()
         .map(|(tag, note_count)| TagSummary {
@@ -35,5 +35,5 @@ pub fn list_tags(state: State<'_, Mutex<Connection>>) -> Result<Vec<TagSummary>>
 
 #[tauri::command]
 pub fn delete_tag(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    tags::delete(&state.lock().unwrap(), id)
+    tags::delete(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id)
 }

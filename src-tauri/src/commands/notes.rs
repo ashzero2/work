@@ -30,7 +30,7 @@ fn card(conn: &Connection, note: NoteMeta) -> Result<NoteCard> {
 
 #[tauri::command]
 pub fn list_notes(state: State<'_, Mutex<Connection>>) -> Result<Vec<NoteCard>> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let mut cards = Vec::new();
     for note in notes_index::list(&conn)? {
         cards.push(card(&conn, note)?);
@@ -40,14 +40,14 @@ pub fn list_notes(state: State<'_, Mutex<Connection>>) -> Result<Vec<NoteCard>> 
 
 #[tauri::command]
 pub fn create_note(title: String, state: State<'_, Mutex<Connection>>) -> Result<NoteCard> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let note = notes::create(&conn, &paths::notes_dir(), notes::NewNote { title })?;
     card(&conn, note)
 }
 
 #[tauri::command]
 pub fn note_body(id: i64, state: State<'_, Mutex<Connection>>) -> Result<String> {
-    notes::body(&state.lock().unwrap(), &paths::notes_dir(), id)
+    notes::body(&state.lock().unwrap_or_else(|poison| poison.into_inner()), &paths::notes_dir(), id)
 }
 
 #[tauri::command]
@@ -58,22 +58,22 @@ pub fn save_note(
     tags: Vec<String>,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<NoteCard> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let note = notes::save(&conn, &paths::notes_dir(), id, &title, &body, &tags)?;
     card(&conn, note)
 }
 
 #[tauri::command]
 pub fn move_note(id: i64, x: f64, y: f64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    notes_index::update_position(&state.lock().unwrap(), id, x, y)
+    notes_index::update_position(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id, x, y)
 }
 
 #[tauri::command]
 pub fn delete_note(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    notes::delete(&state.lock().unwrap(), &paths::notes_dir(), id)
+    notes::delete(&state.lock().unwrap_or_else(|poison| poison.into_inner()), &paths::notes_dir(), id)
 }
 
 #[tauri::command]
 pub fn search_notes(query: String, state: State<'_, Mutex<Connection>>) -> Result<Vec<i64>> {
-    notes_index::search(&state.lock().unwrap(), &query)
+    notes_index::search(&state.lock().unwrap_or_else(|poison| poison.into_inner()), &query)
 }

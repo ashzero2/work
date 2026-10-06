@@ -17,7 +17,7 @@ pub fn start_session(
     planned_seconds: i64,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<PomodoroSession> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let session = pomodoro::start(&conn, kind, task_id, planned_seconds)?;
     announce_session_end(&conn, &session)?;
     Ok(session)
@@ -29,7 +29,7 @@ pub fn finish_session(
     completed: bool,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<PomodoroSession> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let session = pomodoro::finish(&conn, id, completed)?;
     // However the session ended — completed, skipped, or stopped early — its
     // reminder is no longer something to announce.
@@ -53,17 +53,17 @@ fn announce_session_end(conn: &Connection, session: &PomodoroSession) -> Result<
 
 #[tauri::command]
 pub fn reconcile_session(state: State<'_, Mutex<Connection>>) -> Result<Option<PomodoroSession>> {
-    pomodoro::reconcile(&state.lock().unwrap())
+    pomodoro::reconcile(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
 }
 
 #[tauri::command]
 pub fn next_phase(state: State<'_, Mutex<Connection>>) -> Result<SessionKind> {
-    pomodoro::next_phase(&state.lock().unwrap())
+    pomodoro::next_phase(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
 }
 
 #[tauri::command]
 pub fn cycle_position(state: State<'_, Mutex<Connection>>) -> Result<i64> {
-    pomodoro::work_sessions_since_long_break(&state.lock().unwrap())
+    pomodoro::work_sessions_since_long_break(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
 }
 
 #[tauri::command]
@@ -71,12 +71,12 @@ pub fn recent_sessions(
     limit: i64,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<Vec<PomodoroSession>> {
-    pomodoro::recent(&state.lock().unwrap(), limit)
+    pomodoro::recent(&state.lock().unwrap_or_else(|poison| poison.into_inner()), limit)
 }
 
 #[tauri::command]
 pub fn get_pomodoro_settings(state: State<'_, Mutex<Connection>>) -> Result<PomodoroSettings> {
-    pomodoro::settings(&state.lock().unwrap())
+    pomodoro::settings(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
 }
 
 #[tauri::command]
@@ -86,7 +86,7 @@ pub fn set_pomodoro_settings(
     state: State<'_, Mutex<Connection>>,
 ) -> Result<PomodoroSettings> {
     let saved = {
-        let conn = state.lock().unwrap();
+        let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
         pomodoro::save_settings(&conn, &settings)?
     };
 

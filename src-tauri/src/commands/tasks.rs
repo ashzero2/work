@@ -9,32 +9,32 @@ use crate::storage::tasks;
 
 #[tauri::command]
 pub fn list_tasks(state: State<'_, Mutex<Connection>>) -> Result<Vec<Task>> {
-    tasks::list_all(&state.lock().unwrap())
+    tasks::list_all(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
 }
 
 #[tauri::command]
 pub fn create_task(new_task: NewTask, state: State<'_, Mutex<Connection>>) -> Result<Task> {
-    tasks::create(&state.lock().unwrap(), new_task)
+    tasks::create(&state.lock().unwrap_or_else(|poison| poison.into_inner()), new_task)
 }
 
 #[tauri::command]
 pub fn update_task(id: i64, edit: TaskEdit, state: State<'_, Mutex<Connection>>) -> Result<Task> {
-    tasks::update(&state.lock().unwrap(), id, edit)
+    tasks::update(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id, edit)
 }
 
 #[tauri::command]
 pub fn complete_task(id: i64, state: State<'_, Mutex<Connection>>) -> Result<Option<Task>> {
-    tasks::complete_and_recur(&state.lock().unwrap(), id)
+    tasks::complete_and_recur(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id)
 }
 
 #[tauri::command]
 pub fn reopen_task(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    tasks::reopen(&state.lock().unwrap(), id)
+    tasks::reopen(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id)
 }
 
 #[tauri::command]
 pub fn delete_task(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    tasks::delete(&state.lock().unwrap(), id)
+    tasks::delete(&state.lock().unwrap_or_else(|poison| poison.into_inner()), id)
 }
 
 #[tauri::command]
@@ -44,7 +44,7 @@ pub fn move_task_before(
     before_position: f64,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<()> {
-    tasks::move_before(&state.lock().unwrap(), task_id, column_id, before_position)
+    tasks::move_before(&state.lock().unwrap_or_else(|poison| poison.into_inner()), task_id, column_id, before_position)
 }
 
 #[tauri::command]
@@ -53,5 +53,5 @@ pub fn move_task_to_end(
     column_id: i64,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<()> {
-    tasks::move_to_end(&state.lock().unwrap(), task_id, column_id)
+    tasks::move_to_end(&state.lock().unwrap_or_else(|poison| poison.into_inner()), task_id, column_id)
 }

@@ -51,7 +51,7 @@ pub async fn export_tasks(
     state: State<'_, Mutex<Connection>>,
 ) -> Result<Option<String>> {
     let contents = {
-        let conn = state.lock().unwrap();
+        let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
         format.encode(&export::tasks(&conn)?)?
     };
 

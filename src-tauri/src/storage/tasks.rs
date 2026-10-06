@@ -216,10 +216,16 @@ pub fn delete(conn: &Connection, id: i64) -> Result<()> {
 
 const SELECT_TASK: &str = "SELECT id, title, description, column_id, position, priority, due_at, completed_at, repeat_rule, parent_task_id, created_at, updated_at FROM tasks {filter}";
 
-fn parse_rfc3339(value: &str) -> DateTime<Utc> {
+fn parse_rfc3339(value: &str) -> rusqlite::Result<DateTime<Utc>> {
     DateTime::parse_from_rfc3339(value)
-        .expect("timestamps written by this crate are always valid RFC3339")
-        .with_timezone(&Utc)
+        .map(|parsed| parsed.with_timezone(&Utc))
+        .map_err(|error| {
+            rusqlite::Error::FromSqlConversionFailure(
+                0,
+                rusqlite::types::Type::Text,
+                Box::new(error),
+            )
+        })
 }
 
 fn row_to_task(row: &Row) -> rusqlite::Result<Task> {
@@ -236,12 +242,12 @@ fn row_to_task(row: &Row) -> rusqlite::Result<Task> {
         column_id: row.get(3)?,
         position: row.get(4)?,
         priority: Priority::from_i64(row.get(5)?),
-        due_at: due_at.map(|s| parse_rfc3339(&s)),
-        completed_at: completed_at.map(|s| parse_rfc3339(&s)),
+        due_at: due_at.map(|s| parse_rfc3339(&s)).transpose()?,
+        completed_at: completed_at.map(|s| parse_rfc3339(&s)).transpose()?,
         repeat_rule: repeat_rule.and_then(|s| RepeatRule::from_db_str(&s)),
         parent_task_id: row.get(9)?,
-        created_at: parse_rfc3339(&created_at),
-        updated_at: parse_rfc3339(&updated_at),
+        created_at: parse_rfc3339(&created_at)?,
+        updated_at: parse_rfc3339(&updated_at)?,
     })
 }
 
