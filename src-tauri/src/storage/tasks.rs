@@ -183,30 +183,36 @@ pub fn reopen(conn: &Connection, id: i64) -> Result<()> {
     Ok(())
 }
 
-/// Completes a task, and if it repeats, creates its next occurrence —
-/// returning that new task, if one was created.
+/// Completes a task, and if it repeats, creates its next occurrence — returning
+/// that new task, if one was created. Both writes share a transaction, so a
+/// failure can't complete a task without scheduling its successor.
 pub fn complete_and_recur(conn: &Connection, id: i64) -> Result<Option<Task>> {
-    complete(conn, id)?;
-    let task = get(conn, id)?.ok_or(AppError::NotFound)?;
+    let tx = conn.unchecked_transaction()?;
 
-    let Some(rule) = task.repeat_rule else {
-        return Ok(None);
+    complete(&tx, id)?;
+    let task = get(&tx, id)?.ok_or(AppError::NotFound)?;
+
+    let next_task = match task.repeat_rule {
+        None => None,
+        Some(rule) => {
+            let due_at = task.due_at.unwrap_or_else(Utc::now);
+            Some(create(
+                &tx,
+                NewTask {
+                    title: task.title,
+                    description: task.description,
+                    column_id: task.column_id,
+                    priority: task.priority,
+                    due_at: Some(rule.next_occurrence(due_at)),
+                    repeat_rule: Some(rule),
+                    parent_task_id: task.parent_task_id,
+                },
+            )?)
+        }
     };
 
-    let due_at = task.due_at.unwrap_or_else(Utc::now);
-    let next_task = create(
-        conn,
-        NewTask {
-            title: task.title,
-            description: task.description,
-            column_id: task.column_id,
-            priority: task.priority,
-            due_at: Some(rule.next_occurrence(due_at)),
-            repeat_rule: Some(rule),
-            parent_task_id: task.parent_task_id,
-        },
-    )?;
-    Ok(Some(next_task))
+    tx.commit()?;
+    Ok(next_task)
 }
 
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {

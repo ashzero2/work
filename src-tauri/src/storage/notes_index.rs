@@ -117,6 +117,9 @@ pub fn update_position(conn: &Connection, id: i64, x: f64, y: f64) -> Result<()>
     Ok(())
 }
 
+/// Removes a note's search row and its index row together. It runs on whichever
+/// connection it is given, so a caller can pass the transaction that also clears
+/// the note's tags.
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {
     conn.execute("DELETE FROM notes_fts WHERE rowid = ?1", params![id])?;
     conn.execute("DELETE FROM notes WHERE id = ?1", params![id])?;
