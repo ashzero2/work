@@ -18,6 +18,9 @@ class NotesStore {
   private matchingIds = $state<number[] | null>(null);
   private bodies = new NoteCache();
   private searchTimer: number | undefined;
+  /// Bumped on every query change so a response that is no longer the newest can
+  /// be ignored — the debounce only cancels the timer, not a request already out.
+  private searchToken = 0;
 
   async load(): Promise<void> {
     try {
@@ -66,16 +69,23 @@ class NotesStore {
 
     const trimmed = value.trim();
     if (!trimmed) {
+      // Invalidate anything already in flight before clearing the filter.
+      this.searchToken += 1;
       this.matchingIds = null;
       return;
     }
 
+    const token = (this.searchToken += 1);
     this.searchTimer = window.setTimeout(async () => {
       try {
-        this.matchingIds = await api.searchNotes(trimmed);
+        const ids = await api.searchNotes(trimmed);
+        if (token === this.searchToken) this.matchingIds = ids;
       } catch (error) {
-        this.matchingIds = [];
-        toast.show(errorMessage(error));
+        // A stale failure must not blank the results of a newer search.
+        if (token === this.searchToken) {
+          this.matchingIds = [];
+          toast.show(errorMessage(error));
+        }
       }
     }, SEARCH_DEBOUNCE_MS);
   }
