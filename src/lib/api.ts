@@ -9,6 +9,7 @@ import type {
   NotificationState,
   PomodoroSession,
   PomodoroSettings,
+  Priority,
   Reminder,
   ReminderKind,
   SessionKind,
@@ -203,8 +204,12 @@ export function openNotificationSettings(): Promise<void> {
   return invoke<void>('open_notification_settings');
 }
 
-export function captureTask(title: string): Promise<void> {
-  return invoke<void>('capture_task', { title });
+export function captureTask(
+  title: string,
+  priority: Priority,
+  dueAt: string | null
+): Promise<void> {
+  return invoke<void>('capture_task', { title, priority, dueAt });
 }
 
 export function hideCaptureWindow(): Promise<void> {

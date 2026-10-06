@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 
+use chrono::{DateTime, Utc};
 use rusqlite::Connection;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 
@@ -26,10 +27,13 @@ pub fn set_traffic_lights_visible(window: WebviewWindow, visible: bool) {
 
 /// Quick capture: files a task into the first column and dismisses the capture
 /// window. One command rather than a create-then-hide pair, so the window cannot
-/// vanish before the task is actually stored.
+/// vanish before the task is actually stored. The priority and due date come from
+/// the parsing the capture window does as the user types.
 #[tauri::command]
 pub fn capture_task(
     title: String,
+    priority: Priority,
+    due_at: Option<DateTime<Utc>>,
     app: AppHandle,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<()> {
@@ -48,8 +52,8 @@ pub fn capture_task(
                 title,
                 description: None,
                 column_id: column.id,
-                priority: Priority::None,
-                due_at: None,
+                priority,
+                due_at,
                 repeat_rule: None,
                 parent_task_id: None,
             },
