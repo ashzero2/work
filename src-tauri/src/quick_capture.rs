@@ -46,8 +46,13 @@ pub fn install(app: &App) -> std::result::Result<(), Box<dyn std::error::Error>>
         .resizable(false)
         .always_on_top(true)
         .visible(false)
+        // Transparent so the page can round its own corners and let the system
+        // material show through behind them.
+        .transparent(true)
         .inner_size(WIDTH, HEIGHT)
         .build()?;
+
+    crate::platform::apply_capture_material(&window);
 
     // Clicking anywhere else dismisses it, which is what makes a two-keystroke
     // capture feel like it is not there at all.

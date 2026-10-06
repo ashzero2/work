@@ -44,10 +44,16 @@
     return `${day}, ${time}`;
   });
 
+  /// True on macOS, where the window carries a system material behind the card.
+  /// Only then is the surface translucent — otherwise it would read as washed out
+  /// rather than frosted.
+  let material = $state(false);
+
   onMount(async () => {
     // This window has its own document, so it applies the theme itself —
     // otherwise it would be the one surface that ignores dark mode.
-    await initTheme();
+    const state = await initTheme();
+    material = state.macos;
     input?.focus();
   });
 
@@ -87,7 +93,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<main class="capture">
+<main class="capture" class:material>
   <header class="drag" data-tauri-drag-region>
     <span class="mark" aria-hidden="true"><Zap size={13} /></span>
     <span class="title">Quick capture</span>
@@ -148,13 +154,30 @@
 </main>
 
 <style>
+  /* The window is transparent so the card can round its own corners and the
+     system material can show through behind them — which only works if the page
+     itself paints nothing. `html body` outranks the global `body` rule. */
+  :global(html),
+  :global(html body) {
+    background: transparent;
+  }
+
   .capture {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 0 16px 14px;
+    padding-bottom: 16px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: var(--radius-lg);
     background: var(--panel);
     color: var(--fg);
+  }
+
+  /* Over a material the surface only tints it, so the blur reads as a hint
+     rather than the card going see-through. */
+  .capture.material {
+    background: color-mix(in srgb, var(--panel) 84%, transparent);
   }
 
   .drag {
@@ -162,7 +185,8 @@
     flex-shrink: 0;
     align-items: center;
     gap: 8px;
-    height: 40px;
+    height: 42px;
+    padding: 0 18px;
     border-bottom: 1px solid var(--divider);
   }
 
@@ -184,7 +208,7 @@
 
   input {
     height: 44px;
-    margin-top: 14px;
+    margin: 14px 18px 0;
     padding: 0 13px;
     border: 1px solid var(--field-border);
     border-radius: var(--radius);
@@ -208,7 +232,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
-    margin-top: 10px;
+    margin: 10px 18px 0;
   }
 
   .detected-label {
@@ -224,7 +248,7 @@
   }
 
   .error {
-    margin: 10px 0 0;
+    margin: 10px 18px 0;
     color: var(--danger);
     font-size: var(--text-xs);
   }
@@ -233,7 +257,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: auto;
+    margin: auto 18px 0;
     padding-top: 12px;
   }
 

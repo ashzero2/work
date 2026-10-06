@@ -47,6 +47,16 @@ pub fn apply_window_material(window: &tauri::WebviewWindow) {
     let _ = window;
 }
 
+/// Applies the popover material behind the quick-capture window. A no-op off
+/// macOS. The window is transparent, so this is what actually paints it; the page
+/// keeps a translucent surface on top so the app theme still leads the colour.
+pub fn apply_capture_material(window: &tauri::WebviewWindow) {
+    #[cfg(target_os = "macos")]
+    vibrancy::apply_popover(window);
+    #[cfg(not(target_os = "macos"))]
+    let _ = window;
+}
+
 /// Shows or hides the native window controls. A no-op off macOS, where the
 /// window keeps its own decorations.
 pub fn set_traffic_lights_visible(window: &tauri::WebviewWindow, visible: bool) {

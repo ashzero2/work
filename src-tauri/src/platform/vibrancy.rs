@@ -15,3 +15,20 @@ pub fn apply(window: &tauri::WebviewWindow) {
         eprintln!("window material unavailable: {error}");
     }
 }
+
+/// The transient-popover material, for the quick-capture window. This is the one
+/// place a material is semantically right rather than decorative — it is a
+/// popover — and it follows the system appearance the way a native one does.
+/// `Active` rather than following focus, since the window only exists while it is
+/// being used and dimming it on a stray click would look broken.
+pub fn apply_popover(window: &tauri::WebviewWindow) {
+    let result = apply_vibrancy(
+        window,
+        NSVisualEffectMaterial::Popover,
+        Some(NSVisualEffectState::Active),
+        None,
+    );
+    if let Err(error) = result {
+        eprintln!("capture material unavailable: {error}");
+    }
+}
