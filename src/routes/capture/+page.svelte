@@ -44,16 +44,10 @@
     return `${day}, ${time}`;
   });
 
-  /// True on macOS, where the window carries a system material behind the card.
-  /// Only then is the surface translucent — otherwise it would read as washed out
-  /// rather than frosted.
-  let material = $state(false);
-
   onMount(async () => {
     // This window has its own document, so it applies the theme itself —
     // otherwise it would be the one surface that ignores dark mode.
-    const state = await initTheme();
-    material = state.macos;
+    await initTheme();
     input?.focus();
   });
 
@@ -93,7 +87,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<main class="capture" class:material>
+<main class="capture">
   <header class="drag" data-tauri-drag-region>
     <span class="mark" aria-hidden="true"><Zap size={13} /></span>
     <span class="title">Quick capture</span>
@@ -154,9 +148,10 @@
 </main>
 
 <style>
-  /* The window is transparent so the card can round its own corners and the
-     system material can show through behind them — which only works if the page
-     itself paints nothing. `html body` outranks the global `body` rule. */
+  /* The window is transparent so the card can round its own corners: nothing is
+     painted behind it, so the area outside the radius stays see-through. That
+     only works if the page itself paints nothing — `html body` outranks the
+     global `body` rule. */
   :global(html),
   :global(html body) {
     background: transparent;
@@ -168,16 +163,10 @@
     height: 100vh;
     padding-bottom: 16px;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: var(--panel);
     color: var(--fg);
-  }
-
-  /* Over a material the surface only tints it, so the blur reads as a hint
-     rather than the card going see-through. */
-  .capture.material {
-    background: color-mix(in srgb, var(--panel) 84%, transparent);
   }
 
   .drag {

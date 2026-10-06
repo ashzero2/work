@@ -2,13 +2,17 @@ use std::sync::Mutex;
 
 use rusqlite::Connection;
 use serde::Serialize;
-use tauri::{App, AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{App, AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
 use crate::error::AppError;
 use crate::storage::settings;
 
 pub const LABEL: &str = "capture";
+
+/// Emitted to the main window whenever the capture box appears or disappears, so
+/// it can blur its own content behind it.
+pub const CAPTURE_VISIBILITY: &str = "capture:visibility";
 
 /// Where the user's choice lives. The default is what applies before they make
 /// one, and the fallback when their choice can't be bound.
@@ -46,20 +50,18 @@ pub fn install(app: &App) -> std::result::Result<(), Box<dyn std::error::Error>>
         .resizable(false)
         .always_on_top(true)
         .visible(false)
-        // Transparent so the page can round its own corners and let the system
-        // material show through behind them.
+        // Transparent so the page can round its own corners: nothing is painted
+        // behind it, so the area outside the card stays see-through.
         .transparent(true)
         .inner_size(WIDTH, HEIGHT)
         .build()?;
 
-    crate::platform::apply_capture_material(&window);
-
     // Clicking anywhere else dismisses it, which is what makes a two-keystroke
     // capture feel like it is not there at all.
-    let dismiss = window.clone();
+    let dismiss = app.handle().clone();
     window.on_window_event(move |event| {
         if matches!(event, tauri::WindowEvent::Focused(false)) {
-            let _ = dismiss.hide();
+            hide(&dismiss);
         }
     });
 
@@ -166,12 +168,21 @@ pub fn reveal(app: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
     }
+    announce(app, true);
 }
 
 pub fn hide(app: &AppHandle) {
     if let Some(window) = app.get_webview_window(LABEL) {
         let _ = window.hide();
     }
+    announce(app, false);
+}
+
+/// Tells the main window whether the capture box is on screen. It blurs its own
+/// content in response — the popup itself stays a plain, opaque card, so only the
+/// background is ever blurred.
+fn announce(app: &AppHandle, visible: bool) {
+    let _ = app.emit_to(crate::tray::MAIN_LABEL, CAPTURE_VISIBILITY, visible);
 }
 
 #[cfg(test)]

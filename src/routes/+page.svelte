@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
 
+  import { hideCaptureWindow } from '$lib/api';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import FocusView from '$lib/components/FocusView.svelte';
   import NotesView from '$lib/components/NotesView.svelte';
@@ -22,6 +23,9 @@
 
   let prompt = $state<ColumnPrompt | null>(null);
   let paletteOpen = $state(false);
+  /// True while the quick-capture window is up, which is what blurs the app
+  /// behind it.
+  let captureOpen = $state(false);
 
   onMount(async () => {
     await theme.load();
@@ -39,6 +43,9 @@
         void theme.load();
         void pomodoro.load();
         void reminders.load();
+      }),
+      listen<boolean>('capture:visibility', ({ payload }) => {
+        captureOpen = payload;
       })
     ]);
     return () => {
@@ -93,6 +100,13 @@
     </main>
   </div>
 
+  {#if captureOpen}
+    <!-- The capture box is its own always-on-top window; this is what dims and
+         blurs the app behind it while that window is up. Clicking it focuses the
+         main window, which is what dismisses the capture box. -->
+    <div class="capture-scrim" onclick={() => void hideCaptureWindow()} aria-hidden="true"></div>
+  {/if}
+
   {#if paletteOpen}
     <CommandPalette onclose={() => (paletteOpen = false)} />
   {/if}
@@ -130,5 +144,15 @@
     min-height: 0;
     overflow: hidden;
     background: var(--bg);
+  }
+
+  .capture-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 30%, transparent);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    animation: overlay-in var(--motion) var(--ease);
   }
 </style>
