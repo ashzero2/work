@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
-use crate::domain::{NewTask, Priority, RepeatRule, Task};
+use crate::domain::{NewTask, Priority, RepeatRule, Task, TaskEdit};
 use crate::error::{AppError, Result};
 
 pub fn create(conn: &Connection, new_task: NewTask) -> Result<Task> {
@@ -31,6 +31,75 @@ pub fn create(conn: &Connection, new_task: NewTask) -> Result<Task> {
 
     let id = conn.last_insert_rowid();
     get(conn, id)?.ok_or(AppError::NotFound)
+}
+
+/// Applies an edit to a task, validating the parts that could otherwise corrupt
+/// the tree: a title must exist, and a subtask's parent must be a real top-level
+/// task other than itself — the model allows exactly one level of nesting.
+pub fn update(conn: &Connection, id: i64, edit: TaskEdit) -> Result<Task> {
+    let title = edit.title.trim();
+    if title.is_empty() {
+        return Err(AppError::InvalidInput("task title cannot be empty".into()));
+    }
+
+    if let Some(parent_id) = edit.parent_task_id {
+        if has_children(conn, id)? {
+            return Err(AppError::InvalidInput(
+                "a task with subtasks cannot itself become a subtask".into(),
+            ));
+        }
+        validate_parent(conn, id, parent_id)?;
+    }
+
+    let now = Utc::now().to_rfc3339();
+    let changed = conn.execute(
+        "UPDATE tasks
+            SET title = ?1, description = ?2, priority = ?3, due_at = ?4,
+                repeat_rule = ?5, parent_task_id = ?6, updated_at = ?7
+          WHERE id = ?8",
+        params![
+            title,
+            edit.description,
+            edit.priority.as_i64(),
+            edit.due_at.map(|d| d.to_rfc3339()),
+            edit.repeat_rule.map(RepeatRule::as_str),
+            edit.parent_task_id,
+            now,
+            id,
+        ],
+    )?;
+
+    if changed == 0 {
+        return Err(AppError::NotFound);
+    }
+    get(conn, id)?.ok_or(AppError::NotFound)
+}
+
+/// A subtask's parent must exist, must not be the task itself, and must itself be
+/// top level.
+fn validate_parent(conn: &Connection, id: i64, parent_id: i64) -> Result<()> {
+    if parent_id == id {
+        return Err(AppError::InvalidInput(
+            "a task cannot be its own parent".into(),
+        ));
+    }
+    let parent = get(conn, parent_id)?
+        .ok_or_else(|| AppError::InvalidInput("the parent task does not exist".into()))?;
+    if parent.parent_task_id.is_some() {
+        return Err(AppError::InvalidInput(
+            "subtasks support one level only".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn has_children(conn: &Connection, id: i64) -> Result<bool> {
+    let count: i64 = conn.query_row(
+        "SELECT count(*) FROM tasks WHERE parent_task_id = ?1",
+        params![id],
+        |row| row.get(0),
+    )?;
+    Ok(count > 0)
 }
 
 pub fn get(conn: &Connection, id: i64) -> Result<Option<Task>> {
@@ -245,6 +314,117 @@ mod tests {
         let child = create(&conn, child).unwrap();
 
         assert_eq!(child.parent_task_id, Some(parent.id));
+    }
+
+    #[test]
+    fn update_changes_the_editable_fields() {
+        let conn = db::open_in_memory().unwrap();
+        let column = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let task = create(&conn, new_task(column.id, "Before")).unwrap();
+
+        let due = Utc::now() + chrono::Duration::days(2);
+        let updated = update(
+            &conn,
+            task.id,
+            TaskEdit {
+                title: "  After  ".into(),
+                description: Some("details".into()),
+                priority: Priority::High,
+                due_at: Some(due),
+                repeat_rule: Some(crate::domain::RepeatRule::Weekly),
+                parent_task_id: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(updated.title, "After");
+        assert_eq!(updated.description.as_deref(), Some("details"));
+        assert_eq!(updated.priority, Priority::High);
+        assert_eq!(updated.due_at.map(|d| d.timestamp()), Some(due.timestamp()));
+        assert_eq!(updated.repeat_rule, Some(crate::domain::RepeatRule::Weekly));
+        assert!(updated.updated_at >= task.updated_at);
+        // Position and column are untouched by an edit.
+        assert_eq!(updated.position, task.position);
+        assert_eq!(updated.column_id, task.column_id);
+    }
+
+    #[test]
+    fn update_rejects_an_empty_title_and_a_missing_task() {
+        let conn = db::open_in_memory().unwrap();
+        let column = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let task = create(&conn, new_task(column.id, "Real")).unwrap();
+        let edit = |title: &str| TaskEdit {
+            title: title.into(),
+            description: None,
+            priority: Priority::None,
+            due_at: None,
+            repeat_rule: None,
+            parent_task_id: None,
+        };
+
+        assert!(matches!(
+            update(&conn, task.id, edit("   ")).unwrap_err(),
+            AppError::InvalidInput(_)
+        ));
+        assert!(matches!(
+            update(&conn, 9999, edit("Ghost")).unwrap_err(),
+            AppError::NotFound
+        ));
+    }
+
+    #[test]
+    fn update_guards_the_single_level_of_subtasks() {
+        let conn = db::open_in_memory().unwrap();
+        let column = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let a = create(&conn, new_task(column.id, "A")).unwrap();
+        let b = create(&conn, new_task(column.id, "B")).unwrap();
+        let nest = |parent: Option<i64>| TaskEdit {
+            title: "A".into(),
+            description: None,
+            priority: Priority::None,
+            due_at: None,
+            repeat_rule: None,
+            parent_task_id: parent,
+        };
+
+        // A task cannot parent itself.
+        assert!(matches!(
+            update(&conn, a.id, nest(Some(a.id))).unwrap_err(),
+            AppError::InvalidInput(_)
+        ));
+
+        // B becomes a subtask of A...
+        update(&conn, b.id, nest(Some(a.id))).unwrap();
+        // ...so A can no longer become a subtask of anything, and B cannot be
+        // given a grandparent.
+        assert!(matches!(
+            update(&conn, a.id, nest(Some(b.id))).unwrap_err(),
+            AppError::InvalidInput(_)
+        ));
     }
 
     #[test]

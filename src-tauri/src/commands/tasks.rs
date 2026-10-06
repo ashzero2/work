@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use rusqlite::Connection;
 use tauri::State;
 
-use crate::domain::{NewTask, Task};
+use crate::domain::{NewTask, Task, TaskEdit};
 use crate::error::Result;
 use crate::storage::tasks;
 
@@ -15,6 +15,11 @@ pub fn list_tasks(state: State<'_, Mutex<Connection>>) -> Result<Vec<Task>> {
 #[tauri::command]
 pub fn create_task(new_task: NewTask, state: State<'_, Mutex<Connection>>) -> Result<Task> {
     tasks::create(&state.lock().unwrap(), new_task)
+}
+
+#[tauri::command]
+pub fn update_task(id: i64, edit: TaskEdit, state: State<'_, Mutex<Connection>>) -> Result<Task> {
+    tasks::update(&state.lock().unwrap(), id, edit)
 }
 
 #[tauri::command]

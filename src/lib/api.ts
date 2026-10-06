@@ -14,7 +14,8 @@ import type {
   SessionKind,
   ShortcutState,
   TagSummary,
-  Task
+  Task,
+  TaskEdit
 } from './types';
 
 export function listTasks(): Promise<Task[]> {
@@ -23,6 +24,10 @@ export function listTasks(): Promise<Task[]> {
 
 export function createTask(newTask: NewTask): Promise<Task> {
   return invoke<Task>('create_task', { newTask });
+}
+
+export function updateTask(id: number, edit: TaskEdit): Promise<Task> {
+  return invoke<Task>('update_task', { id, edit });
 }
 
 export function completeTask(id: number): Promise<Task | null> {

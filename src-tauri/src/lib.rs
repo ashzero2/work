@@ -88,6 +88,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::tasks::list_tasks,
             commands::tasks::create_task,
+            commands::tasks::update_task,
             commands::tasks::complete_task,
             commands::tasks::reopen_task,
             commands::tasks::delete_task,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CircleCheck, Trash2 } from '@lucide/svelte';
+  import { CircleCheck, Pencil, Trash2 } from '@lucide/svelte';
   import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
 
   import { applyDrop, cardContainer, columnContainer } from '$lib/dnd';
@@ -12,9 +12,10 @@
     subtasksTotal: number;
     oncomplete: (id: number) => void;
     ondelete: (id: number) => void;
+    onedit: (id: number) => void;
   }
 
-  let { task, subtasksDone, subtasksTotal, oncomplete, ondelete }: Props = $props();
+  let { task, subtasksDone, subtasksTotal, oncomplete, ondelete, onedit }: Props = $props();
 
   function onDrop(state: DragDropState<Task>): void {
     applyDrop(state);
@@ -31,6 +32,9 @@
   <div class="row">
     <span class="card-title">{task.title}</span>
     <div class="actions">
+      <button class="icon-btn" title="Edit task" aria-label={`Edit ${task.title}`} onclick={() => onedit(task.id)}>
+        <Pencil size={15} />
+      </button>
       <button
         class="icon-btn"
         title={task.completedAt ? (task.repeatRule ? 'Repeating tasks can’t be reopened' : 'Reopen task') : 'Complete task'}

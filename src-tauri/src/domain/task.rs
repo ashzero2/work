@@ -107,3 +107,16 @@ pub struct NewTask {
     pub repeat_rule: Option<RepeatRule>,
     pub parent_task_id: Option<i64>,
 }
+
+/// The mutable subset of a task — what an edit can change. Column and position
+/// are deliberately absent: moving a task is a drag, not an edit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskEdit {
+    pub title: String,
+    pub description: Option<String>,
+    pub priority: Priority,
+    pub due_at: Option<DateTime<Utc>>,
+    pub repeat_rule: Option<RepeatRule>,
+    pub parent_task_id: Option<i64>,
+}

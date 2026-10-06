@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Check, Trash2 } from '@lucide/svelte';
+  import { Check, Pencil, Trash2 } from '@lucide/svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Task } from '$lib/types';
   import LoadingState from './LoadingState.svelte';
-  let { tasks }: { tasks: Task[] } = $props();
+  let { tasks, onedit }: { tasks: Task[]; onedit: (id: number) => void } = $props();
   const ordered = $derived.by(() => {
     const columnOrder = new Map(workspace.columns.map((column, index) => [column.id, index]));
     const byPosition = (a: Task, b: Task): number =>
@@ -24,7 +24,7 @@
       <td>{workspace.columns.find(column => column.id === task.columnId)?.name ?? '—'}</td>
       <td class="priority">{task.priority === 'none' ? '—' : task.priority}</td>
       <td class="tnum">{task.dueAt ? new Date(task.dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
-      <td><button class="icon-btn" aria-label={`Delete ${task.title}`} onclick={() => void workspace.deleteTask(task.id)}><Trash2 size={14} /></button></td>
+      <td><button class="icon-btn" aria-label={`Edit ${task.title}`} onclick={() => onedit(task.id)}><Pencil size={14} /></button><button class="icon-btn" aria-label={`Delete ${task.title}`} onclick={() => void workspace.deleteTask(task.id)}><Trash2 size={14} /></button></td>
     </tr>{/each}</tbody>
   </table>
   {#if workspace.loading}<LoadingState label="Loading tasks…" />{:else if ordered.length === 0}<p class="empty">No tasks match these filters.</p>{/if}

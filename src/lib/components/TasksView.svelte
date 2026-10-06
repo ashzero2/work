@@ -6,6 +6,7 @@
   import Board from './Board.svelte';
   import TaskList from './TaskList.svelte';
   import TaskCreateDialog from './TaskCreateDialog.svelte';
+  import TaskEditDialog from './TaskEditDialog.svelte';
   import ViewToggle from './ViewToggle.svelte';
 
   let { onaddcolumn, onrename, oncommand }: { onaddcolumn: () => void; onrename: (column: Column) => void; oncommand: () => void } = $props();
@@ -14,6 +15,8 @@
   let due = $state<TaskDueFilter>('all');
   let creating = $state(false);
   let columnId = $state<number | null>(null);
+  let editingId = $state<number | null>(null);
+  const editing = $derived(workspace.tasks.find((task) => task.id === editingId) ?? null);
   const filtered = $derived(workspace.tasks.filter(task => matchesTask(task, { status, priority, due })));
   const dueToday = $derived(workspace.tasks.filter(task => task.parentTaskId === null && matchesTask(task, { status: 'open', priority: 'all', due: 'today' })).length);
   const completedThisWeek = $derived.by(() => {
@@ -44,10 +47,11 @@
     <ViewToggle />
   </div>
   <div class="workspace-body tasks-body">
-    {#if workspace.viewMode === 'board'}<Board tasks={filtered} {onrename} {onaddcolumn} onaddtask={addTask} />{:else}<TaskList tasks={filtered} />{/if}
+    {#if workspace.viewMode === 'board'}<Board tasks={filtered} {onrename} {onaddcolumn} onaddtask={addTask} onedit={(id) => (editingId = id)} />{:else}<TaskList tasks={filtered} onedit={(id) => (editingId = id)} />{/if}
   </div>
 </section>
 {#if creating}<TaskCreateDialog {columnId} onclose={() => creating = false} />{/if}
+{#if editing}<TaskEditDialog task={editing} onclose={() => (editingId = null)} />{/if}
 
 <style>
   .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px var(--gutter); border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }

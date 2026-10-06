@@ -11,10 +11,11 @@
     onrename: (column: ColumnModel) => void;
     onaddcolumn: () => void;
     onaddtask: (id: number) => void;
+    onedit: (id: number) => void;
     tasks: Task[];
   }
 
-  let { onrename, onaddcolumn, onaddtask, tasks }: Props = $props();
+  let { onrename, onaddcolumn, onaddtask, onedit, tasks }: Props = $props();
 
   const openByColumn = $derived.by(() => {
     const grouped = new Map<number, Task[]>();
@@ -66,7 +67,7 @@
   <div class="board-wrap">
     <div class="board" bind:this={board} onscroll={measure}>
       {#each workspace.columns as column (column.id)}
-        <Column {column} tasks={openByColumn.get(column.id) ?? []} {onrename} {onaddcolumn} onadd={() => onaddtask(column.id)} />
+        <Column {column} tasks={openByColumn.get(column.id) ?? []} {onrename} {onaddcolumn} {onedit} onadd={() => onaddtask(column.id)} />
       {/each}
     </div>
     {#if moreRight}

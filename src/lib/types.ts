@@ -47,6 +47,15 @@ export interface NewTask {
   parentTaskId: number | null;
 }
 
+export interface TaskEdit {
+  title: string;
+  description: string | null;
+  priority: Priority;
+  dueAt: string | null;
+  repeatRule: RepeatRule | null;
+  parentTaskId: number | null;
+}
+
 export interface NewColumn {
   name: string;
   color: string | null;

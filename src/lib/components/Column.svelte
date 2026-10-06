@@ -14,9 +14,10 @@
     onrename: (column: ColumnModel) => void;
     onadd: () => void;
     onaddcolumn: () => void;
+    onedit: (id: number) => void;
   }
 
-  let { column, tasks, onrename, onadd, onaddcolumn }: Props = $props();
+  let { column, tasks, onrename, onadd, onaddcolumn, onedit }: Props = $props();
 
   const count = $derived(tasks.length);
   const overWip = $derived(column.wipLimit !== null && count > column.wipLimit);
@@ -77,6 +78,7 @@
         subtasksTotal={progress.total}
         oncomplete={(id) => void workspace.toggleTaskCompletion(id)}
         ondelete={(id) => void workspace.deleteTask(id)}
+        {onedit}
       />
     {/each}
     {#if tasks.length === 0}

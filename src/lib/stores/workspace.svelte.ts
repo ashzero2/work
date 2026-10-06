@@ -1,6 +1,6 @@
 import * as api from '$lib/api';
 import { toast } from '$lib/stores/toast.svelte';
-import type { Column, Task, ViewMode } from '$lib/types';
+import type { Column, Task, TaskEdit, ViewMode } from '$lib/types';
 
 function errorMessage(error: unknown): string {
   return typeof error === 'string' ? error : String(error);
@@ -90,6 +90,19 @@ class WorkspaceStore {
       parentTaskId: null
     });
     await this.refresh();
+  }
+
+  /// Replaces the task with the version the backend returns, so both the board
+  /// and the list see the change without a full reload.
+  async updateTask(id: number, edit: TaskEdit): Promise<boolean> {
+    try {
+      const updated = await api.updateTask(id, edit);
+      this.tasks = this.tasks.map((task) => (task.id === id ? updated : task));
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
   }
 
   async toggleTaskCompletion(id: number): Promise<void> {
