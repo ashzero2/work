@@ -66,6 +66,23 @@ function resolvePalette(stored: string | null): PaletteMode {
 /// (and vice versa) without re-reading storage.
 let current: ThemeState | null = null;
 
+/// The macOS accent is re-derived when the system flips appearance. The listener
+/// is registered once per process: `theme.load()` runs on every settings change,
+/// and adding one each time leaked a listener per call.
+let colorSchemeBound = false;
+let cachedSystemAccent: string | null = null;
+
+function bindColorSchemeListener(): void {
+  if (colorSchemeBound) return;
+  colorSchemeBound = true;
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (current?.mode === 'macos' && cachedSystemAccent !== null) {
+      reflect(current.mode, current.palette, cachedSystemAccent);
+    }
+  });
+}
+
 function remember(state: ThemeState): ThemeState {
   current = state;
   return state;
@@ -102,17 +119,12 @@ export async function initTheme(): Promise<ThemeState> {
   const mode = resolveMode(storedTheme, macos);
   const palette = resolvePalette(storedPalette);
   const systemAccentHex = macos ? await accent() : null;
+  cachedSystemAccent = systemAccentHex;
 
   if (storedTheme === null) reflect(null, palette, null);
   else reflect(mode, palette, mode === 'macos' ? systemAccentHex : null);
 
-  // The accent is derived per appearance, so it is re-derived when the system
-  // flips rather than reused across the change.
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (mode === 'macos' && systemAccentHex !== null) {
-      reflect(mode, palette, systemAccentHex);
-    }
-  });
+  bindColorSchemeListener();
 
   return remember({ mode, palette, appearance: appearanceOf(), macos });
 }
