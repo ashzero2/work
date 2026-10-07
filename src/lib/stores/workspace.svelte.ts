@@ -48,7 +48,8 @@ class WorkspaceStore {
   }
 
   get doneCount(): number {
-    return this.tasks.filter((task) => task.completedAt !== null).length;
+    return this.tasks.filter((task) => task.completedAt !== null && task.parentTaskId === null)
+      .length;
   }
 
   async setViewMode(mode: ViewMode): Promise<void> {
@@ -90,6 +91,28 @@ class WorkspaceStore {
       parentTaskId: null
     });
     await this.refresh();
+  }
+
+  async addSubtask(parentId: number, title: string): Promise<boolean> {
+    const parent = this.tasks.find((task) => task.id === parentId);
+    const trimmed = title.trim();
+    if (!parent || parent.parentTaskId !== null || !trimmed) return false;
+    try {
+      await api.createTask({
+        title: trimmed,
+        description: null,
+        columnId: parent.columnId,
+        priority: 'none',
+        dueAt: null,
+        repeatRule: null,
+        parentTaskId: parent.id
+      });
+      await this.refresh();
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
   }
 
   /// Replaces the task with the version the backend returns, so both the board

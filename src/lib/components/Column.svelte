@@ -71,11 +71,8 @@
 
   <div class="lane-cards">
     {#each tasks as task (task.id)}
-      {@const progress = workspace.subtaskProgress(task.id)}
       <TaskCard
         {task}
-        subtasksDone={progress.done}
-        subtasksTotal={progress.total}
         oncomplete={(id) => void workspace.toggleTaskCompletion(id)}
         ondelete={(id) => void workspace.deleteTask(id)}
         {onedit}

@@ -18,6 +18,8 @@
   let due = $state(task.dueAt ? toDatetimeLocal(task.dueAt) : '');
   // svelte-ignore state_referenced_locally
   let repeat = $state<RepeatRule | 'none'>(task.repeatRule ?? 'none');
+  // svelte-ignore state_referenced_locally — the dialog remounts when the selected task changes
+  let parentTaskId = $state<number | null>(task.parentTaskId);
   let saving = $state(false);
   let dialog: HTMLDialogElement;
 
@@ -33,7 +35,7 @@
       priority,
       dueAt: due ? new Date(due).toISOString() : null,
       repeatRule: repeat === 'none' ? null : repeat,
-      parentTaskId: task.parentTaskId
+      parentTaskId
     });
     saving = false;
     if (saved) onclose();
@@ -74,6 +76,13 @@
 
     <DateTimeField bind:value={due} />
 
+    {#if task.parentTaskId !== null}
+      <div class="parent-info">
+        <span>Subtask of <strong>{workspace.tasks.find((candidate) => candidate.id === task.parentTaskId)?.title ?? 'another task'}</strong></span>
+        <button type="button" class="btn" onclick={() => (parentTaskId = null)}>Make top-level task</button>
+      </div>
+    {/if}
+
     <footer>
       <button type="button" class="btn" onclick={onclose}>Cancel</button>
       <button class="btn btn-primary" disabled={saving || !title.trim()}>
@@ -92,6 +101,7 @@
   input, textarea, select { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--bg); color: var(--fg); font: inherit; font-weight: var(--weight-normal); }
   select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
   textarea { resize: vertical; } .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .parent-info { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 14px; border-top: 1px solid var(--divider); font-size: var(--text-sm); }
   footer { display: flex; justify-content: flex-end; gap: 8px; }
   @media (max-width: 520px) { dialog { padding: 18px; } .fields { grid-template-columns: 1fr; } }
 </style>

@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { CircleCheck, Pencil, Trash2 } from '@lucide/svelte';
+  import { CircleCheck, ListPlus, Pencil, Trash2 } from '@lucide/svelte';
   import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
 
   import { applyDrop, cardContainer, columnContainer } from '$lib/dnd';
   import type { Task } from '$lib/types';
   import TaskMeta from './TaskMeta.svelte';
+  import TaskSubtasks from './TaskSubtasks.svelte';
 
   interface Props {
     task: Task;
-    subtasksDone: number;
-    subtasksTotal: number;
     oncomplete: (id: number) => void;
     ondelete: (id: number) => void;
     onedit: (id: number) => void;
   }
 
-  let { task, subtasksDone, subtasksTotal, oncomplete, ondelete, onedit }: Props = $props();
+  let { task, oncomplete, ondelete, onedit }: Props = $props();
+  let addingSubtask = $state(false);
 
   function onDrop(state: DragDropState<Task>): void {
     applyDrop(state);
@@ -32,6 +32,11 @@
   <div class="row">
     <span class="card-title">{task.title}</span>
     <div class="actions">
+      {#if task.parentTaskId === null}
+        <button class="icon-btn" title="Add subtask" aria-label={`Add subtask to ${task.title}`} onclick={() => (addingSubtask = true)}>
+          <ListPlus size={15} />
+        </button>
+      {/if}
       <button class="icon-btn" title="Edit task" aria-label={`Edit ${task.title}`} onclick={() => onedit(task.id)}>
         <Pencil size={15} />
       </button>
@@ -50,7 +55,8 @@
     </div>
   </div>
   {#if task.description}<p class="description">{task.description}</p>{/if}
-  <TaskMeta {task} {subtasksDone} {subtasksTotal} />
+  <TaskMeta {task} />
+  {#if task.parentTaskId === null}<TaskSubtasks parent={task} {onedit} bind:adding={addingSubtask} />{/if}
 </article>
 
 <style>

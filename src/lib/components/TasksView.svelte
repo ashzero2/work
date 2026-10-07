@@ -18,7 +18,12 @@
   let columnId = $state<number | null>(null);
   let editingId = $state<number | null>(null);
   const editing = $derived(workspace.tasks.find((task) => task.id === editingId) ?? null);
-  const filtered = $derived(workspace.tasks.filter(task => matchesTask(task, { status, priority, due })));
+  const filtered = $derived.by(() => {
+    const matching = workspace.tasks.filter(task => matchesTask(task, { status, priority, due }));
+    const parentIds = new Set(matching.flatMap(task => task.parentTaskId === null ? [] : [task.parentTaskId]));
+    const context = workspace.tasks.filter(task => task.parentTaskId === null && parentIds.has(task.id));
+    return [...new Map([...context, ...matching].map(task => [task.id, task])).values()];
+  });
   const dueToday = $derived(workspace.tasks.filter(task => task.parentTaskId === null && matchesTask(task, { status: 'open', priority: 'all', due: 'today' })).length);
   const completedThisWeek = $derived.by(() => {
     const start = new Date();
@@ -52,7 +57,9 @@
   </div>
 </section>
 {#if creating}<TaskCreateDialog {columnId} onclose={() => creating = false} />{/if}
-{#if editing}<TaskEditDialog task={editing} onclose={() => (editingId = null)} />{/if}
+{#if editing}
+  {#key editing.id}<TaskEditDialog task={editing} onclose={() => (editingId = null)} />{/key}
+{/if}
 
 <style>
   /* Icon-only, but sized and bordered like its neighbours so the header row reads

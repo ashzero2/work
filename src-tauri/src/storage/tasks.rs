@@ -5,6 +5,15 @@ use crate::domain::{NewTask, Priority, RepeatRule, Task, TaskEdit};
 use crate::error::{AppError, Result};
 
 pub fn create(conn: &Connection, new_task: NewTask) -> Result<Task> {
+    if let Some(parent_id) = new_task.parent_task_id {
+        let parent = validate_parent(conn, parent_id)?;
+        if parent.column_id != new_task.column_id {
+            return Err(AppError::InvalidInput(
+                "a subtask must be in the same column as its parent".into(),
+            ));
+        }
+    }
+
     let now = Utc::now().to_rfc3339();
     let position: f64 = conn.query_row(
         "SELECT COALESCE(MAX(position), 0.0) + 1.0 FROM tasks WHERE column_id = ?1",
@@ -48,7 +57,18 @@ pub fn update(conn: &Connection, id: i64, edit: TaskEdit) -> Result<Task> {
                 "a task with subtasks cannot itself become a subtask".into(),
             ));
         }
-        validate_parent(conn, id, parent_id)?;
+        if id == parent_id {
+            return Err(AppError::InvalidInput(
+                "a task cannot be its own parent".into(),
+            ));
+        }
+        let parent = validate_parent(conn, parent_id)?;
+        let task = get(conn, id)?.ok_or(AppError::NotFound)?;
+        if parent.column_id != task.column_id {
+            return Err(AppError::InvalidInput(
+                "a subtask must be in the same column as its parent".into(),
+            ));
+        }
     }
 
     let now = Utc::now().to_rfc3339();
@@ -77,12 +97,7 @@ pub fn update(conn: &Connection, id: i64, edit: TaskEdit) -> Result<Task> {
 
 /// A subtask's parent must exist, must not be the task itself, and must itself be
 /// top level.
-fn validate_parent(conn: &Connection, id: i64, parent_id: i64) -> Result<()> {
-    if parent_id == id {
-        return Err(AppError::InvalidInput(
-            "a task cannot be its own parent".into(),
-        ));
-    }
+fn validate_parent(conn: &Connection, parent_id: i64) -> Result<Task> {
     let parent = get(conn, parent_id)?
         .ok_or_else(|| AppError::InvalidInput("the parent task does not exist".into()))?;
     if parent.parent_task_id.is_some() {
@@ -90,7 +105,7 @@ fn validate_parent(conn: &Connection, id: i64, parent_id: i64) -> Result<()> {
             "subtasks support one level only".into(),
         ));
     }
-    Ok(())
+    Ok(parent)
 }
 
 fn has_children(conn: &Connection, id: i64) -> Result<bool> {
@@ -134,6 +149,7 @@ pub fn list_all(conn: &Connection) -> Result<Vec<Task>> {
 /// task currently holds `before_position` in that column — fractional
 /// ranking, so no sibling ever needs renumbering.
 pub fn move_before(conn: &Connection, id: i64, column_id: i64, before_position: f64) -> Result<()> {
+    ensure_top_level(conn, id)?;
     let prev_position: Option<f64> = conn.query_row(
         "SELECT MAX(position) FROM tasks WHERE column_id = ?1 AND position < ?2",
         params![column_id, before_position],
@@ -148,6 +164,7 @@ pub fn move_before(conn: &Connection, id: i64, column_id: i64, before_position: 
 
 /// Moves a task into `column_id`, appended after every existing task there.
 pub fn move_to_end(conn: &Connection, id: i64, column_id: i64) -> Result<()> {
+    ensure_top_level(conn, id)?;
     let position: f64 = conn.query_row(
         "SELECT COALESCE(MAX(position), 0.0) + 1.0 FROM tasks WHERE column_id = ?1",
         params![column_id],
@@ -158,10 +175,26 @@ pub fn move_to_end(conn: &Connection, id: i64, column_id: i64) -> Result<()> {
 
 fn reposition(conn: &Connection, id: i64, column_id: i64, position: f64) -> Result<()> {
     let now = Utc::now().to_rfc3339();
-    conn.execute(
+    let tx = conn.unchecked_transaction()?;
+    tx.execute(
         "UPDATE tasks SET column_id = ?1, position = ?2, updated_at = ?3 WHERE id = ?4",
         params![column_id, position, now, id],
     )?;
+    tx.execute(
+        "UPDATE tasks SET column_id = ?1, updated_at = ?2 WHERE parent_task_id = ?3",
+        params![column_id, now, id],
+    )?;
+    tx.commit()?;
+    Ok(())
+}
+
+fn ensure_top_level(conn: &Connection, id: i64) -> Result<()> {
+    let task = get(conn, id)?.ok_or(AppError::NotFound)?;
+    if task.parent_task_id.is_some() {
+        return Err(AppError::InvalidInput(
+            "a subtask moves with its parent".into(),
+        ));
+    }
     Ok(())
 }
 
@@ -216,7 +249,10 @@ pub fn complete_and_recur(conn: &Connection, id: i64) -> Result<Option<Task>> {
 }
 
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM tasks WHERE id = ?1", params![id])?;
+    let tx = conn.unchecked_transaction()?;
+    tx.execute("DELETE FROM tasks WHERE parent_task_id = ?1", params![id])?;
+    tx.execute("DELETE FROM tasks WHERE id = ?1", params![id])?;
+    tx.commit()?;
     Ok(())
 }
 
@@ -326,6 +362,85 @@ mod tests {
         let child = create(&conn, child).unwrap();
 
         assert_eq!(child.parent_task_id, Some(parent.id));
+    }
+
+    #[test]
+    fn subtasks_reject_missing_nested_and_cross_column_parents() {
+        let conn = db::open_in_memory().unwrap();
+        let first = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let second = columns::create(
+            &conn,
+            NewColumn {
+                name: "Doing".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let parent = create(&conn, new_task(first.id, "Parent")).unwrap();
+        let mut child = new_task(first.id, "Child");
+        child.parent_task_id = Some(parent.id);
+        let child = create(&conn, child).unwrap();
+
+        let mut nested = new_task(first.id, "Nested");
+        nested.parent_task_id = Some(child.id);
+        assert!(matches!(
+            create(&conn, nested).unwrap_err(),
+            AppError::InvalidInput(_)
+        ));
+
+        let mut cross_column = new_task(second.id, "Elsewhere");
+        cross_column.parent_task_id = Some(parent.id);
+        assert!(matches!(
+            create(&conn, cross_column).unwrap_err(),
+            AppError::InvalidInput(_)
+        ));
+    }
+
+    #[test]
+    fn moving_and_deleting_a_parent_keeps_its_subtasks_attached() {
+        let conn = db::open_in_memory().unwrap();
+        let todo = columns::create(
+            &conn,
+            NewColumn {
+                name: "Todo".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let doing = columns::create(
+            &conn,
+            NewColumn {
+                name: "Doing".into(),
+                color: None,
+                wip_limit: None,
+            },
+        )
+        .unwrap();
+        let parent = create(&conn, new_task(todo.id, "Parent")).unwrap();
+        let mut new_child = new_task(todo.id, "Child");
+        new_child.parent_task_id = Some(parent.id);
+        let child = create(&conn, new_child).unwrap();
+
+        move_to_end(&conn, parent.id, doing.id).unwrap();
+        assert_eq!(get(&conn, child.id).unwrap().unwrap().column_id, doing.id);
+        assert!(matches!(
+            move_to_end(&conn, child.id, todo.id).unwrap_err(),
+            AppError::InvalidInput(_)
+        ));
+
+        delete(&conn, parent.id).unwrap();
+        assert!(get(&conn, parent.id).unwrap().is_none());
+        assert!(get(&conn, child.id).unwrap().is_none());
     }
 
     #[test]
