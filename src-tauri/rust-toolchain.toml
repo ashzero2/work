@@ -1,0 +1,6 @@
+# Edition 2024 needs Rust >= 1.85. Pinning the channel here means a checkout on
+# an older toolchain fails immediately with a clear message instead of a parse
+# error, and keeps rustfmt/clippy (which AGENTS.md prescribes) available.
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]

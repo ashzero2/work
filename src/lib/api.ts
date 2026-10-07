@@ -9,12 +9,14 @@ import type {
   NotificationState,
   PomodoroSession,
   PomodoroSettings,
+  Priority,
   Reminder,
   ReminderKind,
   SessionKind,
   ShortcutState,
   TagSummary,
-  Task
+  Task,
+  TaskEdit
 } from './types';
 
 export function listTasks(): Promise<Task[]> {
@@ -23,6 +25,10 @@ export function listTasks(): Promise<Task[]> {
 
 export function createTask(newTask: NewTask): Promise<Task> {
   return invoke<Task>('create_task', { newTask });
+}
+
+export function updateTask(id: number, edit: TaskEdit): Promise<Task> {
+  return invoke<Task>('update_task', { id, edit });
 }
 
 export function completeTask(id: number): Promise<Task | null> {
@@ -198,8 +204,12 @@ export function openNotificationSettings(): Promise<void> {
   return invoke<void>('open_notification_settings');
 }
 
-export function captureTask(title: string): Promise<void> {
-  return invoke<void>('capture_task', { title });
+export function captureTask(
+  title: string,
+  priority: Priority,
+  dueAt: string | null
+): Promise<void> {
+  return invoke<void>('capture_task', { title, priority, dueAt });
 }
 
 export function hideCaptureWindow(): Promise<void> {

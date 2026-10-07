@@ -10,4 +10,4 @@ pub use note::{NoteFrontMatter, NoteMeta};
 pub use pomodoro::{PomodoroSession, SessionKind, next_kind};
 pub use reminder::{Reminder, ReminderKind, ReminderStatus};
 pub use tag::{EntityKind, Tag};
-pub use task::{NewTask, Priority, RepeatRule, Task};
+pub use task::{NewTask, Priority, RepeatRule, Task, TaskEdit};

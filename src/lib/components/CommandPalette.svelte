@@ -249,7 +249,7 @@
     border-bottom: 1px solid var(--border);
     background: transparent;
     color: var(--fg);
-    font-size: 15px;
+    font-size: var(--text-lg);
     outline: none;
   }
 
@@ -266,20 +266,20 @@
     gap: 10px;
     padding: 7px 9px;
     border-radius: var(--radius-sm);
-    font-size: 13px;
+    font-size: var(--text-base);
     cursor: pointer;
   }
 
   li.active {
     background: var(--selection-bg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-xs);
   }
 
   .kind {
     flex-shrink: 0;
     width: 52px;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .label {
@@ -295,7 +295,7 @@
     max-width: 200px;
     overflow: hidden;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
     white-space: nowrap;
     text-overflow: ellipsis;
   }

@@ -143,15 +143,15 @@
   dialog { width: min(500px, calc(100vw - 40px)); max-height: calc(100vh - 40px); padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); color: var(--fg); box-shadow: var(--shadow-md); }
   dialog::backdrop { background: #0005; }
   form, label { display: flex; flex-direction: column; gap: 8px; }
-  form { gap: 16px; } h2 { margin: 0; font-size: 20px; }
-  label { font-size: 13px; font-weight: 600; }
-  input, textarea, select { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--bg); color: var(--fg); font: inherit; font-weight: 400; }
+  form { gap: 16px; } h2 { margin: 0; font-size: var(--text-xl); letter-spacing: var(--tracking-tight); }
+  label { font-size: var(--text-base); font-weight: var(--weight-semibold); }
+  input, textarea, select { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--bg); color: var(--fg); font: inherit; font-weight: var(--weight-normal); }
   select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
   textarea { resize: vertical; } .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   footer { display: flex; justify-content: flex-end; gap: 8px; }
   .detected { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: -10px; }
-  .detected-label { color: var(--muted-fg); font-size: 12px; font-weight: 500; }
-  .chip { border: 0; background: color-mix(in srgb, var(--tone) 16%, transparent); color: var(--tone); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .detected-label { color: var(--muted-fg); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+  .chip { border: 0; background: color-mix(in srgb, var(--tone) 16%, transparent); color: var(--tone); font: inherit; font-size: var(--text-xs); font-weight: var(--weight-semibold); cursor: pointer; }
   .chip:hover { background: color-mix(in srgb, var(--tone) 26%, transparent); }
   @media (max-width: 520px) { dialog { padding: 18px; } .fields { grid-template-columns: 1fr; } }
 </style>

@@ -56,8 +56,13 @@ export function toDatetimeLocal(iso: string): string {
   );
 }
 
-export function fromDatetimeLocal(value: string): string {
-  return new Date(value).toISOString();
+/// Returns `null` for an empty or unparseable value, so a blank field can't
+/// become a `RangeError` out of `toISOString`.
+export function fromDatetimeLocal(value: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
 }
 
 export function formatMoment(iso: string): string {

@@ -30,7 +30,7 @@ pub struct KindToggle {
 
 #[tauri::command]
 pub fn list_reminders(state: State<'_, Mutex<Connection>>) -> Result<Vec<Reminder>> {
-    reminders::list(&state.lock().unwrap())
+    reminders::list(&state.lock().unwrap_or_else(|poison| poison.into_inner()))
 }
 
 #[tauri::command]
@@ -40,7 +40,7 @@ pub fn create_reminder(
     trigger_at: DateTime<Utc>,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<Reminder> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let reminder = reminders::create(
         &conn,
         NewReminder {
@@ -60,7 +60,7 @@ pub fn reschedule_reminder(
     trigger_at: DateTime<Utc>,
     state: State<'_, Mutex<Connection>>,
 ) -> Result<Reminder> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let reminder = reminders::reschedule(&conn, id, trigger_at)?;
     reminder_sync::sync(&conn)?;
     Ok(reminder)
@@ -68,7 +68,7 @@ pub fn reschedule_reminder(
 
 #[tauri::command]
 pub fn snooze_reminder(id: i64, state: State<'_, Mutex<Connection>>) -> Result<Reminder> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let until = Utc::now() + Duration::minutes(SNOOZE_MINUTES);
     let reminder = reminders::snooze(&conn, id, until)?;
     reminder_sync::sync(&conn)?;
@@ -77,7 +77,7 @@ pub fn snooze_reminder(id: i64, state: State<'_, Mutex<Connection>>) -> Result<R
 
 #[tauri::command]
 pub fn dismiss_reminder(id: i64, state: State<'_, Mutex<Connection>>) -> Result<Reminder> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     let reminder = reminders::mark(&conn, id, ReminderStatus::Dismissed)?;
     reminder_sync::sync(&conn)?;
     Ok(reminder)
@@ -85,14 +85,14 @@ pub fn dismiss_reminder(id: i64, state: State<'_, Mutex<Connection>>) -> Result<
 
 #[tauri::command]
 pub fn delete_reminder(id: i64, state: State<'_, Mutex<Connection>>) -> Result<()> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
     reminders::delete(&conn, id)?;
     reminder_sync::sync(&conn)
 }
 
 #[tauri::command]
 pub fn notification_state(state: State<'_, Mutex<Connection>>) -> Result<NotificationState> {
-    let conn = state.lock().unwrap();
+    let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
 
     Ok(NotificationState {
         available: crate::platform::notifications_available(),
@@ -117,7 +117,7 @@ pub fn set_kind_enabled(
     state: State<'_, Mutex<Connection>>,
 ) -> Result<()> {
     {
-        let conn = state.lock().unwrap();
+        let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
         reminders::set_enabled(&conn, kind, enabled)?;
         reminder_sync::sync(&conn)?;
     }

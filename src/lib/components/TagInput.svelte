@@ -74,10 +74,10 @@
     align-items: center;
     gap: 2px;
     padding: 3px 4px 3px 8px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: color-mix(in srgb, var(--accent) 14%, transparent);
     color: color-mix(in srgb, var(--accent) 82%, var(--fg));
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   input {
@@ -86,7 +86,7 @@
     border: none;
     background: transparent;
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
     outline: none;
   }
 </style>

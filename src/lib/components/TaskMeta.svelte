@@ -22,13 +22,13 @@
       <span class="chip chip-{tone}">{priorityLabel[task.priority]}</span>
     {/if}
     {#if due}
-      <span class="chip chip-{due.tone}"><CalendarDays size={11} />{due.label}</span>
+      <span class="chip chip-{due.tone} tnum"><CalendarDays size={11} />{due.label}</span>
     {/if}
     {#if task.repeatRule}
       <span class="chip chip-muted"><RotateCw size={11} />{repeatLabel[task.repeatRule]}</span>
     {/if}
     {#if subtasksTotal > 0}
-      <span class="chip chip-muted"><ListChecks size={11} />{subtasksDone}/{subtasksTotal}</span>
+      <span class="chip chip-muted tnum"><ListChecks size={11} />{subtasksDone}/{subtasksTotal}</span>
     {/if}
   </div>
 {/if}

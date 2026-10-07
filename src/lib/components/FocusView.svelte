@@ -133,7 +133,7 @@
 <style>
   .body { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(250px, .7fr); align-items: start; gap: 18px; }
   .focus-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 335px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
-  .setup-row { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .setup-row { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--divider); font-size: var(--text-base); }
   .dial {
     display: flex;
     flex-direction: column;
@@ -145,18 +145,19 @@
 
   .eyebrow {
     color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
   .clock {
     color: var(--accent);
+    font-family: var(--font-mono);
     font-size: clamp(54px, 8vw, 88px);
-    font-weight: 700;
+    font-weight: var(--weight-medium);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.06em;
+    letter-spacing: -0.03em;
     line-height: 1.1;
   }
 
@@ -166,7 +167,7 @@
 
   .phase {
     color: var(--muted-fg);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .track {
@@ -175,14 +176,14 @@
     /* Far enough below the clock that it reads as progress, not as an underline
        under the readout. */
     margin-top: 22px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: color-mix(in srgb, var(--muted-fg) 22%, transparent);
     overflow: hidden;
   }
 
   .fill {
     height: 100%;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: var(--accent);
     transition: width var(--motion-fast) linear;
   }
@@ -206,9 +207,9 @@
 
   .block-label {
     color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
@@ -220,7 +221,7 @@
   .hint {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .recent {
@@ -235,11 +236,11 @@
     gap: 10px;
     padding: 8px 9px;
     border-radius: var(--radius-sm);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .row:hover {
-    background: var(--lane);
+    background: var(--hover);
   }
 
   .row-phase {

@@ -51,7 +51,7 @@ pub async fn export_tasks(
     state: State<'_, Mutex<Connection>>,
 ) -> Result<Option<String>> {
     let contents = {
-        let conn = state.lock().unwrap();
+        let conn = state.lock().unwrap_or_else(|poison| poison.into_inner());
         format.encode(&export::tasks(&conn)?)?
     };
 
@@ -71,7 +71,13 @@ pub async fn export_tasks(
     let path = chosen
         .into_path()
         .map_err(|error| AppError::InvalidInput(error.to_string()))?;
-    std::fs::write(&path, contents)?;
+
+    // Plain disk IO, so it goes on the blocking pool rather than holding up the
+    // async command's thread.
+    let target = path.clone();
+    tauri::async_runtime::spawn_blocking(move || std::fs::write(&target, contents))
+        .await
+        .map_err(|error| AppError::InvalidInput(format!("export task failed: {error}")))??;
 
     Ok(Some(path.display().to_string()))
 }

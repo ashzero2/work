@@ -1,19 +1,23 @@
 <script lang="ts">
-  import { Command, Plus } from '@lucide/svelte';
+  import { Plus, Zap } from '@lucide/svelte';
+  import { showCaptureWindow } from '$lib/api';
   import { workspace } from '$lib/stores/workspace.svelte';
   import { matchesTask, type TaskStatusFilter, type TaskDueFilter } from '$lib/task-filter';
   import type { Column, Priority } from '$lib/types';
   import Board from './Board.svelte';
   import TaskList from './TaskList.svelte';
   import TaskCreateDialog from './TaskCreateDialog.svelte';
+  import TaskEditDialog from './TaskEditDialog.svelte';
   import ViewToggle from './ViewToggle.svelte';
 
-  let { onaddcolumn, onrename, oncommand }: { onaddcolumn: () => void; onrename: (column: Column) => void; oncommand: () => void } = $props();
+  let { onaddcolumn, onrename }: { onaddcolumn: () => void; onrename: (column: Column) => void } = $props();
   let status = $state<TaskStatusFilter>('all');
   let priority = $state<Priority | 'all'>('all');
   let due = $state<TaskDueFilter>('all');
   let creating = $state(false);
   let columnId = $state<number | null>(null);
+  let editingId = $state<number | null>(null);
+  const editing = $derived(workspace.tasks.find((task) => task.id === editingId) ?? null);
   const filtered = $derived(workspace.tasks.filter(task => matchesTask(task, { status, priority, due })));
   const dueToday = $derived(workspace.tasks.filter(task => task.parentTaskId === null && matchesTask(task, { status: 'open', priority: 'all', due: 'today' })).length);
   const completedThisWeek = $derived.by(() => {
@@ -28,7 +32,7 @@
 <section class="workspace-view">
   <header class="workspace-head" data-tauri-drag-region>
     <div><h1>Tasks</h1><p>{workspace.openCount} open · {workspace.doneCount} done · Local workspace</p></div>
-    <div class="head-actions"><button class="btn" onclick={oncommand}><Command size={14} /> Command menu</button><button class="btn btn-primary" onclick={() => workspace.columns.length ? addTask() : onaddcolumn()}><Plus size={15} /> New task</button></div>
+    <div class="head-actions"><button class="btn bolt" title="Quick capture" aria-label="Quick capture" onclick={() => void showCaptureWindow()}><Zap size={16} /></button><button class="btn btn-primary" onclick={() => workspace.columns.length ? addTask() : onaddcolumn()}><Plus size={15} /> New task</button></div>
   </header>
   <div class="overview" aria-label="Task overview">
     <div><strong>{workspace.openCount}</strong><span>Open tasks</span></div>
@@ -44,18 +48,24 @@
     <ViewToggle />
   </div>
   <div class="workspace-body tasks-body">
-    {#if workspace.viewMode === 'board'}<Board tasks={filtered} {onrename} {onaddcolumn} onaddtask={addTask} />{:else}<TaskList tasks={filtered} />{/if}
+    {#if workspace.viewMode === 'board'}<Board tasks={filtered} {onrename} {onaddcolumn} onaddtask={addTask} onedit={(id) => (editingId = id)} />{:else}<TaskList tasks={filtered} onedit={(id) => (editingId = id)} />{/if}
   </div>
 </section>
 {#if creating}<TaskCreateDialog {columnId} onclose={() => creating = false} />{/if}
+{#if editing}<TaskEditDialog task={editing} onclose={() => (editingId = null)} />{/if}
 
 <style>
-  .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px 28px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
-  .overview div { display: flex; align-items: baseline; gap: 9px; padding: 10px 14px; border-right: 1px solid var(--border); }
-  .overview div:last-child { border: 0; } .overview strong { font-size: 17px; font-variant-numeric: tabular-nums; } .overview span { font-size: 12px; color: var(--muted-fg); }
-  .tools, .filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .tools { justify-content: space-between; padding: 0 28px 14px; }
-  select { appearance: none; min-height: 36px; padding: 0 28px 0 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 9px center; color: var(--fg); font: inherit; font-size: 13px; }
-  .tasks-body { padding: 0 28px 28px; }
+  /* Icon-only, but sized and bordered like its neighbours so the header row reads
+     as one set of controls. */
+  .bolt { width: 36px; min-height: 36px; padding: 0; }
+  .overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px var(--gutter); border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }
+  .overview div { display: flex; align-items: baseline; gap: 9px; padding: 9px 14px; border-right: 1px solid var(--divider); }
+  .overview div:last-child { border-right: 0; }
+  .overview strong { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: var(--weight-medium); letter-spacing: var(--tracking-tight); }
+  .overview span { font-size: var(--text-sm); color: var(--muted-fg); }
+  .tools, .filters { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+  .tools { justify-content: space-between; padding: 0 var(--gutter) 14px; }
+  select { appearance: none; min-height: 32px; padding: 0 28px 0 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 9px center; color: var(--fg); font: inherit; font-size: var(--text-base); }
+  .tasks-body { padding: 0 var(--gutter) 28px; }
   @media (max-width: 700px) { .overview { margin-inline: 16px; } .overview div { flex-direction: column; gap: 2px; padding: 10px; } .tools { padding-inline: 16px; } .tasks-body { padding-inline: 16px; } }
 </style>

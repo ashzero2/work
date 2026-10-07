@@ -38,6 +38,11 @@ const MAX_SECONDS: i64 = 7200;
 const MIN_SESSIONS: i64 = 1;
 const MAX_SESSIONS: i64 = 12;
 
+/// The longest a single session may be planned for. The value reaches chrono,
+/// which panics on an out-of-range duration — and with `panic = "abort"` that
+/// would take the whole app down, so it is clamped at the edge instead.
+const MAX_PLANNED_SECONDS: i64 = 24 * 60 * 60;
+
 /// Opens a session. Only one is ever open — the UI resolves any previous one
 /// through `reconcile` before starting another.
 pub fn start(
@@ -46,6 +51,7 @@ pub fn start(
     task_id: Option<i64>,
     planned_seconds: i64,
 ) -> Result<PomodoroSession> {
+    let planned_seconds = planned_seconds.clamp(1, MAX_PLANNED_SECONDS);
     conn.execute(
         "INSERT INTO pomodoro_sessions (task_id, kind, planned_seconds, started_at, ended_at, completed)
          VALUES (?1, ?2, ?3, ?4, NULL, 0)",
@@ -232,16 +238,25 @@ fn row_to_session(row: &Row) -> rusqlite::Result<PomodoroSession> {
         task_id: row.get(1)?,
         kind: SessionKind::from_db_str(&kind).unwrap_or(SessionKind::Work),
         planned_seconds: row.get(3)?,
-        started_at: parse_rfc3339(&started_at),
-        ended_at: ended_at.map(|value| parse_rfc3339(&value)),
+        started_at: parse_rfc3339(&started_at)?,
+        ended_at: ended_at.map(|value| parse_rfc3339(&value)).transpose()?,
         completed: row.get(6)?,
     })
 }
 
-fn parse_rfc3339(value: &str) -> chrono::DateTime<Utc> {
+/// A stored timestamp that no longer parses is reported as a row error rather
+/// than panicking: a hand-edited or partially-written row must not be able to
+/// abort the app.
+fn parse_rfc3339(value: &str) -> rusqlite::Result<chrono::DateTime<Utc>> {
     chrono::DateTime::parse_from_rfc3339(value)
-        .expect("timestamps written by this crate are always valid RFC3339")
-        .with_timezone(&Utc)
+        .map(|parsed| parsed.with_timezone(&Utc))
+        .map_err(|error| {
+            rusqlite::Error::FromSqlConversionFailure(
+                0,
+                rusqlite::types::Type::Text,
+                Box::new(error),
+            )
+        })
 }
 
 #[cfg(test)]
@@ -257,6 +272,23 @@ mod tests {
     fn complete(conn: &Connection, kind: SessionKind, seconds: i64) {
         let session = start(conn, kind, None, seconds).unwrap();
         finish(conn, session.id, true).unwrap();
+    }
+
+    #[test]
+    fn start_clamps_an_absurd_planned_length() {
+        let conn = conn();
+        assert_eq!(
+            start(&conn, SessionKind::Work, None, i64::MAX)
+                .unwrap()
+                .planned_seconds,
+            MAX_PLANNED_SECONDS
+        );
+        assert_eq!(
+            start(&conn, SessionKind::Break, None, -10)
+                .unwrap()
+                .planned_seconds,
+            1
+        );
     }
 
     #[test]

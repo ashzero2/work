@@ -51,11 +51,11 @@
   }
 
   .toggle-label {
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .toggle-hint {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 </style>

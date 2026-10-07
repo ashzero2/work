@@ -2,7 +2,6 @@
   import {
     Bell,
     Command,
-    Plus,
     ListTodo,
     PanelLeft,
     Settings2,
@@ -12,7 +11,7 @@
     Trash2
   } from '@lucide/svelte';
 
-  import { setTrafficLightsVisible, showSettingsWindow, showCaptureWindow } from '$lib/api';
+  import { setTrafficLightsVisible, showSettingsWindow } from '$lib/api';
   import { navigation } from '$lib/stores/navigation.svelte';
   import { notes } from '$lib/stores/notes.svelte';
   import { theme } from '$lib/stores/theme.svelte';
@@ -161,7 +160,6 @@
       <Settings2 size={collapsed ? 17 : 15} />
       {#if !collapsed}<span>Settings</span>{/if}
     </button>
-    <button class="utility" class:collapsed aria-label="Quick capture" onclick={() => void showCaptureWindow()}><Plus size={navIcon} />{#if !collapsed}<span>Quick capture</span>{/if}</button>
     <button class="utility" class:collapsed aria-label="Command menu" onclick={oncommand}><Command size={navIcon} />{#if !collapsed}<span>Command menu</span>{/if}</button>
   </div>
 </aside>
@@ -248,17 +246,17 @@
   }
 
   .brand-copy strong {
-    font-size: 14px;
-    font-weight: 650;
-    letter-spacing: 0.01em;
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
   }
 
   .section-label {
     padding: 0 10px 5px;
-    color: color-mix(in srgb, var(--muted-fg) 72%, transparent);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.11em;
+    color: var(--muted-fg);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
@@ -278,8 +276,8 @@
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--muted-fg);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
     text-align: left;
     cursor: pointer;
   }
@@ -317,9 +315,9 @@
     gap: 6px;
     padding: 0 9px 6px;
     color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
@@ -339,7 +337,7 @@
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--muted-fg);
-    font-size: 13px;
+    font-size: var(--text-base);
     text-align: left;
     cursor: pointer;
   }
@@ -366,13 +364,15 @@
   .count {
     flex-shrink: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
   }
 
   .hint {
     margin: 2px 9px;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
     line-height: 1.45;
   }
 
@@ -398,11 +398,11 @@
     min-height: 34px;
     padding: 0 9px;
     border: 0;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--muted-fg);
-    font-size: 13px;
-    font-weight: 500;
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
     cursor: pointer;
   }
 

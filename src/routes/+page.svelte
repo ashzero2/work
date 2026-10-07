@@ -2,9 +2,9 @@
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
 
+  import { hideCaptureWindow } from '$lib/api';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import FocusView from '$lib/components/FocusView.svelte';
-  import NoteEditorDialog from '$lib/components/NoteEditorDialog.svelte';
   import NotesView from '$lib/components/NotesView.svelte';
   import PromptDialog from '$lib/components/PromptDialog.svelte';
   import RemindersView from '$lib/components/RemindersView.svelte';
@@ -23,6 +23,9 @@
 
   let prompt = $state<ColumnPrompt | null>(null);
   let paletteOpen = $state(false);
+  /// True while the quick-capture window is up, which is what blurs the app
+  /// behind it.
+  let captureOpen = $state(false);
 
   onMount(async () => {
     await theme.load();
@@ -40,6 +43,9 @@
         void theme.load();
         void pomodoro.load();
         void reminders.load();
+      }),
+      listen<boolean>('capture:visibility', ({ payload }) => {
+        captureOpen = payload;
       })
     ]);
     return () => {
@@ -63,12 +69,16 @@
   }
 
   async function submitPrompt(value: string): Promise<void> {
-    if (prompt?.mode === 'rename') {
-      await workspace.renameColumn(prompt.column.id, value);
-    } else {
-      await workspace.createColumn(value);
-    }
-    prompt = null;
+    const current = prompt;
+    if (current === null) return;
+
+    const saved =
+      current.mode === 'rename'
+        ? await workspace.renameColumn(current.column.id, value)
+        : await workspace.createColumn(value);
+
+    // Keep the dialog open when the write failed, so the name isn't lost.
+    if (saved) prompt = null;
   }
 </script>
 
@@ -79,7 +89,7 @@
     <Sidebar oncommand={() => paletteOpen = true} />
     <main class="content">
       {#if navigation.section === 'tasks'}
-        <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} oncommand={() => paletteOpen = true} />
+        <TasksView onaddcolumn={openCreateColumn} onrename={openRenameColumn} />
       {:else if navigation.section === 'notes'}
         <NotesView />
       {:else if navigation.section === 'focus'}
@@ -89,6 +99,13 @@
       {/if}
     </main>
   </div>
+
+  {#if captureOpen}
+    <!-- The capture box is its own always-on-top window; this is what dims and
+         blurs the app behind it while that window is up. Clicking it focuses the
+         main window, which is what dismisses the capture box. -->
+    <div class="capture-scrim" onclick={() => void hideCaptureWindow()} aria-hidden="true"></div>
+  {/if}
 
   {#if paletteOpen}
     <CommandPalette onclose={() => (paletteOpen = false)} />
@@ -106,13 +123,6 @@
       oncancel={() => (prompt = null)}
     />
   {/if}
-
-  {#key notes.selectedId}
-    {@const selectedNote = notes.selected}
-    {#if selectedNote}
-      <NoteEditorDialog note={selectedNote} onclose={() => notes.closeEditor()} />
-    {/if}
-  {/key}
 </div>
 
 <style>
@@ -134,5 +144,15 @@
     min-height: 0;
     overflow: hidden;
     background: var(--bg);
+  }
+
+  .capture-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 30%, transparent);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    animation: overlay-in var(--motion) var(--ease);
   }
 </style>

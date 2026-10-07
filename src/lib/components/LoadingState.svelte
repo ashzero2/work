@@ -35,7 +35,7 @@
 
   .bar {
     height: 8px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: color-mix(in srgb, var(--muted-fg) 14%, transparent);
   }
 
@@ -45,6 +45,6 @@
 
   .label {
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 </style>

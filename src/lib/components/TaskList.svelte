@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Check, Trash2 } from '@lucide/svelte';
+  import { Check, Pencil, Trash2 } from '@lucide/svelte';
   import { workspace } from '$lib/stores/workspace.svelte';
   import type { Task } from '$lib/types';
   import LoadingState from './LoadingState.svelte';
-  let { tasks }: { tasks: Task[] } = $props();
+  let { tasks, onedit }: { tasks: Task[]; onedit: (id: number) => void } = $props();
   const ordered = $derived.by(() => {
     const columnOrder = new Map(workspace.columns.map((column, index) => [column.id, index]));
     const byPosition = (a: Task, b: Task): number =>
@@ -23,17 +23,17 @@
       <td class="task-title" class:child={task.parentTaskId !== null}>{task.title}</td>
       <td>{workspace.columns.find(column => column.id === task.columnId)?.name ?? '—'}</td>
       <td class="priority">{task.priority === 'none' ? '—' : task.priority}</td>
-      <td>{task.dueAt ? new Date(task.dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
-      <td><button class="icon-btn" aria-label={`Delete ${task.title}`} onclick={() => void workspace.deleteTask(task.id)}><Trash2 size={14} /></button></td>
+      <td class="tnum">{task.dueAt ? new Date(task.dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
+      <td><button class="icon-btn" aria-label={`Edit ${task.title}`} onclick={() => onedit(task.id)}><Pencil size={14} /></button><button class="icon-btn" aria-label={`Delete ${task.title}`} onclick={() => void workspace.deleteTask(task.id)}><Trash2 size={14} /></button></td>
     </tr>{/each}</tbody>
   </table>
   {#if workspace.loading}<LoadingState label="Loading tasks…" />{:else if ordered.length === 0}<p class="empty">No tasks match these filters.</p>{/if}
 </div>
 <style>
-  .list { height: 100%; overflow: auto; } table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-  th { position: sticky; top: 0; background: var(--lane); color: var(--muted-fg); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
-  th, td { padding: 11px 8px; border-bottom: 1px solid var(--border); } td { background: var(--panel); } tr:hover td { background: var(--hover); }
-  .task-title { width: 45%; font-weight: 600; } .task-title.child { padding-left: 28px; } .priority { text-transform: capitalize; } .done .task-title { text-decoration: line-through; color: var(--muted-fg); }
-  .checkbox { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--field-border); border-radius: 4px; background: var(--panel); color: var(--accent); }
+  .list { height: 100%; overflow: auto; } table { width: 100%; border-collapse: collapse; font-size: var(--text-base); text-align: left; }
+  th { position: sticky; top: 0; background: var(--lane); color: var(--muted-fg); font-size: var(--text-2xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-label); }
+  th, td { padding: 10px 8px; border-bottom: 1px solid var(--divider); } td { background: var(--panel); } tr:hover td { background: var(--hover); }
+  .task-title { width: 45%; font-weight: var(--weight-medium); } .task-title.child { padding-left: 28px; } .priority { text-transform: capitalize; } .done .task-title { text-decoration: line-through; color: var(--muted-fg); }
+  .checkbox { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--field-border); border-radius: var(--radius-xs); background: var(--panel); color: var(--accent); }
   .empty { padding: 30px; text-align: center; color: var(--muted-fg); }
 </style>

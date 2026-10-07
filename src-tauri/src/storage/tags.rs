@@ -44,8 +44,10 @@ pub fn get_or_create(conn: &Connection, name: &str) -> Result<Tag> {
 }
 
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM taggables WHERE tag_id = ?1", params![id])?;
-    conn.execute("DELETE FROM tags WHERE id = ?1", params![id])?;
+    let tx = conn.unchecked_transaction()?;
+    tx.execute("DELETE FROM taggables WHERE tag_id = ?1", params![id])?;
+    tx.execute("DELETE FROM tags WHERE id = ?1", params![id])?;
+    tx.commit()?;
     Ok(())
 }
 
@@ -85,6 +87,8 @@ pub fn names_for_entity(
 }
 
 /// Replaces an entity's whole tag set, creating any tags that don't exist yet.
+/// It runs on whichever connection it is given, so a caller that needs the tag
+/// set to change atomically with its own writes passes its transaction.
 pub fn set_for_entity(
     conn: &Connection,
     kind: EntityKind,

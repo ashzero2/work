@@ -33,6 +33,14 @@ pub fn run() {
             let conn = storage::db::open()?;
             storage::columns::ensure_default(&conn)?;
 
+            // The note files are the source of truth, so if the index is ever lost
+            // it is rebuilt from them rather than left empty.
+            if let Err(error) =
+                storage::notes::recover_if_empty(&conn, &storage::paths::notes_dir())
+            {
+                eprintln!("note index recovery failed: {error}");
+            }
+
             // Settle anything that came due while the app was closed before
             // registering what is still outstanding.
             if let Err(error) = reminder_sync::reconcile(&conn) {
@@ -88,6 +96,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::tasks::list_tasks,
             commands::tasks::create_task,
+            commands::tasks::update_task,
             commands::tasks::complete_task,
             commands::tasks::reopen_task,
             commands::tasks::delete_task,

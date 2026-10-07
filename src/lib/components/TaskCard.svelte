@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CircleCheck, Trash2 } from '@lucide/svelte';
+  import { CircleCheck, Pencil, Trash2 } from '@lucide/svelte';
   import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
 
   import { applyDrop, cardContainer, columnContainer } from '$lib/dnd';
@@ -12,9 +12,10 @@
     subtasksTotal: number;
     oncomplete: (id: number) => void;
     ondelete: (id: number) => void;
+    onedit: (id: number) => void;
   }
 
-  let { task, subtasksDone, subtasksTotal, oncomplete, ondelete }: Props = $props();
+  let { task, subtasksDone, subtasksTotal, oncomplete, ondelete, onedit }: Props = $props();
 
   function onDrop(state: DragDropState<Task>): void {
     applyDrop(state);
@@ -31,6 +32,9 @@
   <div class="row">
     <span class="card-title">{task.title}</span>
     <div class="actions">
+      <button class="icon-btn" title="Edit task" aria-label={`Edit ${task.title}`} onclick={() => onedit(task.id)}>
+        <Pencil size={15} />
+      </button>
       <button
         class="icon-btn"
         title={task.completedAt ? (task.repeatRule ? 'Repeating tasks can’t be reopened' : 'Reopen task') : 'Complete task'}
@@ -51,7 +55,7 @@
 
 <style>
   .completed .card-title { text-decoration: line-through; color: var(--muted-fg); }
-  .description { margin: 0; font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .description { margin: 0; font-size: var(--text-base); line-height: var(--leading-normal); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .card {
     display: flex;
     flex-direction: column;
@@ -64,8 +68,7 @@
   }
 
   .card:hover {
-    border-color: var(--accent);
-    background: var(--hover);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   }
 
   .row {
@@ -77,8 +80,8 @@
   .card-title {
     flex: 1;
     min-width: 0;
-    font-size: 14px;
-    line-height: 1.35;
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
   }
 
   .actions {

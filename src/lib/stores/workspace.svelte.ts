@@ -1,6 +1,6 @@
 import * as api from '$lib/api';
 import { toast } from '$lib/stores/toast.svelte';
-import type { Column, Task, ViewMode } from '$lib/types';
+import type { Column, Task, TaskEdit, ViewMode } from '$lib/types';
 
 function errorMessage(error: unknown): string {
   return typeof error === 'string' ? error : String(error);
@@ -92,6 +92,19 @@ class WorkspaceStore {
     await this.refresh();
   }
 
+  /// Replaces the task with the version the backend returns, so both the board
+  /// and the list see the change without a full reload.
+  async updateTask(id: number, edit: TaskEdit): Promise<boolean> {
+    try {
+      const updated = await api.updateTask(id, edit);
+      this.tasks = this.tasks.map((task) => (task.id === id ? updated : task));
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
+  }
+
   async toggleTaskCompletion(id: number): Promise<void> {
     const task = this.tasks.find((candidate) => candidate.id === id);
     if (!task || (task.completedAt !== null && task.repeatRule !== null)) return;
@@ -133,18 +146,32 @@ class WorkspaceStore {
     await this.persist(() => api.moveTaskToEnd(taskId, columnId));
   }
 
-  async createColumn(name: string): Promise<void> {
+  /// Both return whether the write landed, so the dialog can stay open on
+  /// failure instead of silently discarding what was typed.
+  async createColumn(name: string): Promise<boolean> {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    await api.createColumn({ name: trimmed, color: null, wipLimit: null });
-    await this.refresh();
+    if (!trimmed) return false;
+    try {
+      await api.createColumn({ name: trimmed, color: null, wipLimit: null });
+      await this.refresh();
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
   }
 
-  async renameColumn(id: number, name: string): Promise<void> {
+  async renameColumn(id: number, name: string): Promise<boolean> {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    await api.renameColumn(id, trimmed);
-    await this.refresh();
+    if (!trimmed) return false;
+    try {
+      await api.renameColumn(id, trimmed);
+      await this.refresh();
+      return true;
+    } catch (error) {
+      toast.show(errorMessage(error));
+      return false;
+    }
   }
 
   async deleteColumn(id: number): Promise<void> {

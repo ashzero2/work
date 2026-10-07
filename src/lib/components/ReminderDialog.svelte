@@ -36,10 +36,11 @@
   const ready = $derived(when.length > 0 && !saving);
 
   async function save(): Promise<void> {
-    if (!ready) return;
+    const iso = fromDatetimeLocal(when);
+    if (!ready || iso === null) return;
     saving = true;
     try {
-      await reminders.create(kind, taskId, fromDatetimeLocal(when));
+      await reminders.create(kind, taskId, iso);
       onclose();
     } finally {
       saving = false;
@@ -164,9 +165,9 @@
 
   .field-label {
     color: var(--muted-fg);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
 
@@ -181,7 +182,7 @@
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg);
-    font-size: 13px;
+    font-size: var(--text-base);
     cursor: pointer;
   }
 
@@ -192,7 +193,7 @@
   .hint {
     margin: 0;
     color: var(--muted-fg);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   footer {

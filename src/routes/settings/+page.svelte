@@ -102,8 +102,8 @@
 
 <style>
   header { margin: 22px 24px 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-  h1 { margin: 0; font-size: 21px; }
-  header p { margin: 4px 0 0; color: var(--muted-fg); font-size: 13px; }
+  h1 { margin: 0; font-size: var(--text-xl); letter-spacing: var(--tracking-tight); }
+  header p { margin: 4px 0 0; color: var(--muted-fg); font-size: var(--text-base); }
   .settings-layout { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; padding: 0 24px; flex: 1; min-height: 0; }
   .settings {
     display: flex;
@@ -124,15 +124,15 @@
   }
 
   .pane-button {
-    min-height: 36px;
+    min-height: 34px;
     text-align: left;
     padding: 0 12px;
     border: none;
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--muted-fg);
-    font-size: 13px;
-    font-weight: 500;
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
     cursor: pointer;
   }
 
@@ -142,8 +142,9 @@
   }
 
   .pane-button.active {
-    background: var(--accent);
-    color: var(--accent-fg);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--fg);
+    box-shadow: inset 2px 0 0 var(--accent);
   }
 
   .pane {
